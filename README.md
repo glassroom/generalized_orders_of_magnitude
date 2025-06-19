@@ -18,13 +18,13 @@ The only dependency is a recent version of Pytorch.
 
 Import the library with:
 
-```
+```python
 import generalized_orders_of_magnitude as goom
 ```
 
 ### Mapping Real Tensors to GOOMs and Back
 
-```
+```python
 import torch
 import generalized_orders_of_magnitude as goom
 
