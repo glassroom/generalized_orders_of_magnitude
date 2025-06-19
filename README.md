@@ -148,6 +148,10 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
 print(longest_chains)
 ```
 
+## Background
+
+The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the domain of complex logarithms. Our casual conversations gradually evolved into the development of generalized orders of magnitude, an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan. We hope others find our work and our code useful.
+
 
 ## Citing
 
