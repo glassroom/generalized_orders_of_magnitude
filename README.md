@@ -74,7 +74,7 @@ Note: To be able to run the sample code below, you must first install [`torch_pa
 ```python
 import torch
 import generalized_orders_of_magnitude as goom
-import torch_parallel_scan as tps  # install from https://github.com/glassroom/torch_parallel_scan/
+import torch_parallel_scan as tps  # you must install
 
 DEVICE = 'cuda'  # change as needed
 
@@ -103,11 +103,13 @@ Our library has three configuration options, set to sensible defaults. They are:
 
 ## Replicating Published Results
 
-### Experiment 1: Chains of Matrix Products that Compound Element Magnitudes toward Infinity
+TODO: Describe the three published experiments.
+
+### Chains of Matrix Products that Compound Element Magnitudes toward Infinity
 
 TODO: Describe experiment with chains of matrix products here. Maybe show a plot.
 
-**WARNING: Running the code will take a LONG time, because all chains successfully finish with GOOMs.**
+WARNING: Running the code below will take a LONG time, because all chains successfully finish with GOOMs.
 
 ```python
 import tqdm
@@ -152,12 +154,12 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
 print(longest_chains)
 ```
 
-### Experiment 2: Parallel Estimation of the Spectrum of Lyapunov Exponents of Dynamical Systems
+### Parallel Estimation of the Spectrum of Lyapunov Exponents of Dynamical Systems
 
 See https://github.com/glassroom/parallel_lyapunov_exponents.
 
 
-### Experiment 3: Deep RNN Capturing Sequential Dependencies with a Non-Diagonal SSM over GOOMs
+### Deep RNN Capturing Sequential Dependencies with a Non-Diagonal SSM over GOOMs
 
 See https://github.com/glassroom/goom_ssm_rnn
 
