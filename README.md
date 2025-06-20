@@ -1,6 +1,8 @@
 # generalized_orders_of_magnitude
 
-Scientists and engineers often work with real numbers spanning large dynamic ranges, which can exceed the limits of common floating-point formats like Float32 or Float64. A typical example is a chain of matrix products that ends prematurely with catastrophic numerical error because it compounds element values beyond representable bounds. We propose generalizing the concept of "order of magnitude" to include the subset of the complex plane that exponentiates elementwise to the real number line, enabling us to represent any real number -- positive, zero, or negative---as a complex logarithm that exponentiates to it. We call such complex logarithms "generalized orders of magnitude," or GOOMs for short. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate. From a theoretical standpoint, GOOMs build on prior work on logarithmic number systems, with early roots in digital signal processing. From a practical standpoint, GOOMs provide a mechanism for software applications to operate over a greater dynamic range of real numbers than previously possible, without requiring new floating-point formats. This repository contains our initial reference implementation of GOOMs for Pytorch.
+Initial reference implementation of generalized orders of magnitude (GOOMs), for Pytorch. The GOOMs implemented in this repository are complex-typed Pytorch tensors that exponentiate elementwise to floating-point tensors. They enable you to work with real numbers that exceed the limits of float32 and float64.
+
+TODO: A simple example showing floats failing but GOOMs succeeding
 
 
 ## Installing
