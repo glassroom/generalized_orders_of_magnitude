@@ -105,7 +105,7 @@ Our library has three configuration options, set to sensible defaults. They are:
 
 TODO: Describe the three published experiments.
 
-### Chains of Matrix Products that Compound Element Magnitudes toward Infinity
+### 1. Chains of Matrix Products that Compound Magnitudes toward Infinity
 
 TODO: Describe experiment with chains of matrix products here. Maybe show a plot.
 
@@ -154,12 +154,12 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
 print(longest_chains)
 ```
 
-### Parallel Estimation of the Spectrum of Lyapunov Exponents of Dynamical Systems
+### 2. Parallel Estimation of the Spectrum of Lyapunov Exponents
 
 See https://github.com/glassroom/parallel_lyapunov_exponents.
 
 
-### Deep RNN Capturing Sequential Dependencies with a Non-Diagonal SSM over GOOMs
+### 3. Deep RNN Modeling Sequences with Non-Diagonal SSMs over GOOMs
 
 See https://github.com/glassroom/goom_ssm_rnn
 
