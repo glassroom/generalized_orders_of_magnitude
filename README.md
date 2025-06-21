@@ -1,6 +1,6 @@
 # generalized_orders_of_magnitude
 
-Reference implementation of generalized orders of magnitude (GOOMs), for PyTorch. The code here implements GOOMs as complex-typed PyTorch tensors that exponentiate elementwise to float-typed PyTorch tensors. GOOMs enable you to operate with real numbers outside the bounds representable by torch.float32 and torch.float64. Toy example:
+Reference implementation of generalized orders of magnitude (GOOMs), for PyTorch. This implementation enables you to operate with real numbers outside the bounds representable by torch.float32 and torch.float64. Toy example:
 
 ```python
 import torch
