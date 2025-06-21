@@ -10,15 +10,15 @@ DEVICE = 'cuda'                                                    # change as n
 goom.config.float_dtype = torch.float64                            # real and imag dtype
 mm, lmme = (torch.matmul, goom.log_matmul_exp)                     # for easier legibility
 
-A = torch.randn(3, 3, dtype=torch.float64, device=DEVICE) * 1e128  # matrix w/large magnitudes
-B = torch.linalg.inv(A)                                            # matrix w/small magnitudes
+A = torch.randn(3, 3, dtype=torch.float64, device=DEVICE) * 1e128  # large magnitudes
+B = torch.linalg.inv(A)                                            # small magnitudes
 C = mm(mm(mm(mm(A, A), A), B), B)                                  # C should equal A
-print('Computes over float64?', torch.allclose(A, C))              # the computation fails!
+print('Computes over float64?', torch.allclose(A, C))              # computation fails!
 
 log_A = goom.log(A)                                                # map A to a GOOM
 log_B = goom.log(B)                                                # map B to a GOOM
 log_C = lmme(lmme(lmme(lmme(log_A, log_A), log_A), log_B), log_B)  # C should equal A
-print('Computes over GOOMs?', torch.allclose(A, goom.exp(log_C)))  # the computation succeeds!
+print('Computes over GOOMs?', torch.allclose(A, goom.exp(log_C)))  # computation succeeds!
 ```
 
 
