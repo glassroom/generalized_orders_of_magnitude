@@ -1,6 +1,6 @@
 # generalized_orders_of_magnitude
 
-Initial reference implementation of generalized orders of magnitude (GOOMs), for PyTorch. This repository implements GOOMs as complex-typed PyTorch tensors that exponentiate elementwise to floating-point tensors. They enable you to work with real numbers that exceed the limits of torch.float32 and torch.float64.
+Initial reference implementation of generalized orders of magnitude (GOOMs), for PyTorch. This repository implements GOOMs as complex-typed PyTorch tensors that exponentiate elementwise to floating-point tensors. They enable you to work with real numbers that are not representable by torch.float32 and torch.float64.
 
 Toy example:
 
@@ -185,7 +185,7 @@ See https://github.com/glassroom/goom_ssm_rnn
 
 ## Background
 
-The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the domain of complex logarithms. Our casual conversations gradually evolved into the development of generalized orders of magnitude, an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan. We hope others find our work and our code useful.
+The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the domain of complex logarithms. Our casual conversations gradually evolved into the development of generalized orders of magnitude, along with an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan. We hope others find our work and our code useful.
 
 
 ## Citing
