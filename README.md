@@ -63,7 +63,7 @@ print('exp(log_x):\n{}\n'.format(goom.exp(log_x)))
 
 ### Matrix Multiplication over GOOMs
 
-TODO: Write brief intro about LMME.
+The following snippet of code executes the same matrix multiplication over real numbers and over GOOMs:
 
 ```python
 import torch
@@ -71,17 +71,15 @@ import generalized_orders_of_magnitude as goom
 
 DEVICE = 'cuda'  # change as needed
 
-# A matrix multiplication:
-A = torch.randn(5, 4, device=DEVICE)
-B = torch.randn(4, 3, device=DEVICE)
-Y = A @ B
-print('Y:\n{}\n'.format(Y))
+x = torch.randn(5, 4, device=DEVICE)
+y = torch.randn(4, 3, device=DEVICE)
+z = torch.matmul(x, y)
+print('z:\n{}\n'.format(z))
 
-# The same multiplication, over GOOMs:
-log_A = goom.log(A)
-log_B = goom.log(B)
-log_Y = goom.log_matmul_exp(log_A, log_B)
-print('exp(log_Y):\n{}\n'.format(goom.exp(log_Y)))
+log_x = goom.log(x)
+log_y = goom.log(y)
+log_z = goom.log_matmul_exp(log_x, log_y)
+print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 ```
 
 ### Chains of Matrix Products over GOOMs 
@@ -97,14 +95,14 @@ DEVICE = 'cuda'  # change as needed
 
 # A chain of matrix products:
 n, d = (5, 4)
-A = torch.randn(n, d, d, device=DEVICE) / (d ** 0.5)
-Y = torch.linalg.multi_dot([*A])
-print('Y:\n{}\n'.format(Y))
+x = torch.randn(n, d, d, device=DEVICE) / (d ** 0.5)
+y = tps.reduce_scan(x, torch.matmul, dim=0)
+print('y:\n{}\n'.format(y))
 
 # The same chain, executed over GOOMs:
-log_A = goom.log(A)
-log_Y = tps.reduce_scan(log_A, goom.log_matmul_exp, dim=-3)
-print('exp(log_Y):\n{}\n'.format(goom.exp(log_Y)))
+log_x = goom.log(x)
+log_y = tps.reduce_scan(log_x, goom.log_matmul_exp, dim=0)
+print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 ```
 
 ## Configuration Options
@@ -129,26 +127,27 @@ TODO: Describe experiment with chains of matrix products here. Maybe show a plot
 WARNING: Running the code below will take a LONG time, because all chains successfully finish with GOOMs.
 
 ```python
-import tqdm
 import torch
 import generalized_orders_of_magnitude as goom
-assert goom.config.keep_logs_finite == True and float_dtype == torch.float32
+from tqdm import tqdm
 
-DEVICE = 'cuda'  # change as needed
+goom.config.keep_logs_finite == True
+goom.config.float_dtype == torch.float32
 
-n = 1_000_000    # maximum chain length
-n_runs = 30      # number of runs per matrix size
-d_list = [2 ** (i+1) for i in range(2, 10)]  # list of square matrix dims to try
+DEVICE = 'cuda'                                # change as needed
+n = 1_000_000                                  # maximum chain length
+n_runs = 30                                    # number of runs per matrix size
+d_list = [8, 16, 32, 64, 128, 256, 512, 1024]  # list of square matrix dims to try
 
 longest_chains = []
 for dtype in [torch.float32, torch.float64]:
     for run_number in tqdm(range(n_runs), desc=f'Runs over R with {dtype}'):
         for d in d_list:
-            S = torch.randn(d, d, dtype=dtype, device=DEVICE)
+            state = torch.randn(d, d, dtype=dtype, device=DEVICE)
             for t in range(n):
-                A = torch.randn(d, d, dtype=dtype, device=DEVICE)
-                S = S & A
-                if not S.isfinite().all().item():
+                new_mat = torch.randn(d, d, dtype=dtype, device=DEVICE)
+                state = torch.matmul(state, new_mat)
+                if not state.isfinite().all().item():
                     break
             longest_chains.append({
                 'method': 'MatMul_over_R', 'dtype_name': str(dtype),
@@ -157,18 +156,18 @@ for dtype in [torch.float32, torch.float64]:
 
 for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64"):
     for d in d_list:
-        log_S = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
+        log_state = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
         for t in range(n):
-            log_A = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
-            log_S = goom.log_matmul_exp(log_S, log_A)
-            if not log_S.isfinite().all().item():
+            log_new_mat = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
+            log_state = goom.log_matmul_exp(log_state, log_new_mat)
+            if not log_state.isfinite().all().item():
                 break
         longest_chains.append({
             'method': 'LogMatMulExp_over_GOOMs', 'dtype_name': 'torch.complex64',
             'run_number': run_number, 'd': d, 'n_completed': t + 1,
         })
 
-print(longest_chains)
+print(*longest_chains, sep='\n')
 ```
 
 ### 2. Parallel Estimation of the Spectrum of Lyapunov Exponents
