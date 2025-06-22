@@ -141,7 +141,7 @@ In our paper, we perform three representative experiments: (1) compounding up to
 
 ### 1. Chains of Matrix Products that Compound Magnitudes toward Infinity
 
-The code below will attempt to compute chains of up to 1M products of real random matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: Running the code below will take a LONG time, because all chains finish successfully with GOOMs.
+The code below will attempt to compute chains of up to 1M products of real random matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: If you run the code below on a CPU, it will take a LONG time, because all product chains finish successfully with GOOMs.
 
 ```python
 import torch
