@@ -181,6 +181,11 @@ See https://github.com/glassroom/parallel_lyapunov_exponents.
 See https://github.com/glassroom/goom_ssm_rnn
 
 
+## Compromises and Limitations
+
+TODO: Show that LMME can, in principle, be implemented as log-sume-exp of elementwise sums. Explain current compromise implementation, due to memory bandwidth issues with obvious approaches.
+
+
 ## Background
 
 The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the domain of complex logarithms. Our casual conversations gradually evolved into the development of generalized orders of magnitude, along with an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan. We hope others find our work and our code useful.
