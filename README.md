@@ -108,6 +108,22 @@ log_y = tps.reduce_scan(log_x, goom.log_matmul_exp, dim=0)
 print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 ```
 
+### Other Functions over GOOMs:
+
+All implemented functions are defined in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, execute the following on a Python command line:
+
+```python
+import generalized_orders_of_magnitude as goom
+print('List of implemented functions:', *[
+    name for name in dir(goom)
+    if (not name.startswith('_')) and
+    (name not in ['dataclass', 'math', 'torch', 'Config', 'config'])
+], sep='\n')
+```
+
+To see the docstring and implementation of any function, type its name followed by "??" on a Python command line, as usual.
+
+
 ## Configuration Options
 
 Our library has three configuration options, set to sensible defaults. They are:
