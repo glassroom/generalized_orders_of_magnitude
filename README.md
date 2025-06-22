@@ -234,10 +234,20 @@ print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing highly optimized complex-typed kernels over tiled sub-tensors. As a compromise, we currently implement `goom.log_matmul_exp` so it delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is a sub-optimal compromise, both in terms of precision (we execute scaled dot-products over float-typed real tensors, instead of elementwise sums over complex-typed GOOMs) and performance (we must compute not only a scaled matrix product, but also per-row and per-column maximums on the left and right matrices, respectively, two elementwise subtractions, and two elementwise sums). In practice, we find that this initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
 
 
-## Background
-
-The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the domain of complex logarithms. Our casual conversations gradually evolved into the development of generalized orders of magnitude, along with an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan. We hope others find our work and our code useful.
-
-
 ## Citing
+
+TODO: Update citation.
+
+@misc{heinsenkozachkov2025gooms,
+      title={Generalized Orders of Magnitude for Scalable, Parallel, High-Dynamic-Range Computation}, 
+      author={Franz A. Heinsen, Leo Kozachkov},
+      year={2025},
+}
+
+
+## Notes
+
+The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the complex plane. Our casual conversations gradually evolved into the development of generalized orders of magnitude, along with an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan.
+
+We hope others find our work and our code useful.
 
