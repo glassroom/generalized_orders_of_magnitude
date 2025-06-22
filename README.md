@@ -48,7 +48,7 @@ import torch
 import generalized_orders_of_magnitude as goom
 
 DEVICE = 'cuda'  # change as needed
-goom.config.float_dtype == torch.float32
+goom.config.float_dtype = torch.float32
 
 # Create a float-typed real tensor:
 x = torch.randn(5, 3, device=DEVICE)
@@ -71,7 +71,7 @@ import torch
 import generalized_orders_of_magnitude as goom
 
 DEVICE = 'cuda'  # change as needed
-goom.config.float_dtype == torch.float32
+goom.config.float_dtype = torch.float32
 
 x = torch.randn(5, 4, device=DEVICE)
 y = torch.randn(4, 3, device=DEVICE)
@@ -94,7 +94,7 @@ import generalized_orders_of_magnitude as goom
 import torch_parallel_scan as tps  # you must install
 
 DEVICE = 'cuda'  # change as needed
-goom.config.float_dtype == torch.float32
+goom.config.float_dtype = torch.float32
 
 # A chain of matrix products:
 n, d = (5, 4)
@@ -141,22 +141,20 @@ In our paper, we perform three representative experiments: (1) compounding up to
 
 ### 1. Chains of Matrix Products that Compound Magnitudes toward Infinity
 
-TODO: Describe experiment with chains of matrix products here. Maybe show a plot.
-
-WARNING: Running the code below will take a LONG time, because all chains successfully finish with GOOMs.
+The code below will attempt to compute chains of up to 1M products of real random matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: Running the code below will take a LONG time, because all chains finish successfully with GOOMs.
 
 ```python
 import torch
 import generalized_orders_of_magnitude as goom
 from tqdm import tqdm
 
-goom.config.keep_logs_finite == True
-goom.config.float_dtype == torch.float32
+goom.config.keep_logs_finite = True
+goom.config.float_dtype = torch.float32
 
 DEVICE = 'cuda'                                # change as needed
 n = 1_000_000                                  # maximum chain length
 n_runs = 30                                    # number of runs per matrix size
-d_list = [8, 16, 32, 64, 128, 256, 512, 1024]  # list of square matrix dims to try
+d_list = [8, 16, 32, 64, 128, 256, 512, 1024]  # square matrix sizes
 
 longest_chains = []
 for dtype in [torch.float32, torch.float64]:
@@ -164,8 +162,8 @@ for dtype in [torch.float32, torch.float64]:
         for d in d_list:
             state = torch.randn(d, d, dtype=dtype, device=DEVICE)
             for t in range(n):
-                new_mat = torch.randn(d, d, dtype=dtype, device=DEVICE)
-                state = torch.matmul(state, new_mat)
+                update = torch.randn(d, d, dtype=dtype, device=DEVICE)
+                state = torch.matmul(state, update)
                 if not state.isfinite().all().item():
                     break
             longest_chains.append({
@@ -177,8 +175,8 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
     for d in d_list:
         log_state = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
         for t in range(n):
-            log_new_mat = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
-            log_state = goom.log_matmul_exp(log_state, log_new_mat)
+            log_update = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
+            log_state = goom.log_matmul_exp(log_state, log_update)
             if not log_state.isfinite().all().item():
                 break
         longest_chains.append({
