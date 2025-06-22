@@ -48,6 +48,7 @@ import torch
 import generalized_orders_of_magnitude as goom
 
 DEVICE = 'cuda'  # change as needed
+goom.config.float_dtype == torch.float32
 
 # Create a float-typed real tensor:
 x = torch.randn(5, 3, device=DEVICE)
@@ -70,6 +71,7 @@ import torch
 import generalized_orders_of_magnitude as goom
 
 DEVICE = 'cuda'  # change as needed
+goom.config.float_dtype == torch.float32
 
 x = torch.randn(5, 4, device=DEVICE)
 y = torch.randn(4, 3, device=DEVICE)
@@ -84,7 +86,7 @@ print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 
 ### Chains of Matrix Products over GOOMs 
 
-Note: To be able to run the sample code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/).
+Note: To be able to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/).
 
 ```python
 import torch
@@ -92,6 +94,7 @@ import generalized_orders_of_magnitude as goom
 import torch_parallel_scan as tps  # you must install
 
 DEVICE = 'cuda'  # change as needed
+goom.config.float_dtype == torch.float32
 
 # A chain of matrix products:
 n, d = (5, 4)
@@ -109,16 +112,16 @@ print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 
 Our library has three configuration options, set to sensible defaults. They are:
 
-* `goom.config.keep_logs_finite` (boolean): If True, `goom.log()` always returns finite values. If False, `goom.log()` returns `float("-inf")` values for any real input values numerically equal to zero. Default: True.
+* `goom.config.keep_logs_finite` (boolean): If True, `goom.log()` always returns finite values. The finite value returned for any input element numerically equal to zero will numerically exponentiate to zero in the specified float dtype. If False, `goom.log()` returns `float("-inf")` values for inputs numerically equal to zero. Default: True. 
 
-* `goom.config.cast_all_logs_to_complex` (boolean): If True, `goom.log()` always returns complex-typed tensors. If False, `goom.log()` returns float tensors if all real input elements are equal to or greater than zero. Default: True.
+* `goom.config.cast_all_logs_to_complex` (boolean): If True, `goom.log()` always returns complex-typed tensors. If False, `goom.log()` returns float tensors if all real input elements are equal to or greater than zero. This option is useful for improving performance and reducing memory use when working with real values that are always non-negative, such as measures and probabilities. Default: True.
 
-* `goom.config.float_dtype` (torch.dtype): Float dtype of real and imaginary components of complex logarithms, and of real logarithms. Default: `torch.float32`, _i.e._, complex-typed GOOMs are represented as `torch.complex64` tensors with `torch.float32` real and imaginary components. For greater precision, set `goom.config.float_dtype = torch.float64`. Note: We have only tested this configuration option with `torch.float32` and `torch.float64`.
+* `goom.config.float_dtype` (torch.dtype): Float dtype of real and imaginary components of complex GOOMs, and of real GOOMs. Default: `torch.float32`, _i.e._, complex-typed GOOMs are represented by default as `torch.complex64` tensors with `torch.float32` real and imaginary components. For greater precision, set `goom.config.float_dtype = torch.float64`. Note: We have only tested this configuration option only with `torch.float32` and `torch.float64`.
 
 
 ## Replicating Published Results
 
-TODO: Describe the three published experiments.
+In our paper, we perform three representative experiments: (1) compounding up to one million real matrix products beyond standard floating-point limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, despite allowing recurrent state elements to fluctuate freely over time steps. To replicate our experiments, follow the instructions below.
 
 ### 1. Chains of Matrix Products that Compound Magnitudes toward Infinity
 
@@ -170,7 +173,7 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
 print(*longest_chains, sep='\n')
 ```
 
-### 2. Parallel Estimation of the Spectrum of Lyapunov Exponents
+### 2. Parallel Estimation of the Spectrum of Lyapunov Exponents over GOOMs
 
 See https://github.com/glassroom/parallel_lyapunov_exponents.
 
