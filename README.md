@@ -199,7 +199,9 @@ See https://github.com/glassroom/goom_ssm_rnn
 
 ## Limitations
 
-As we show in our paper, `goom.log_matmul_exp` is expressible log-sum-exp of pairwise elementwise vector additions. A straightforward approach to implement it would be to compute all pairwise elementwise additions in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs (_e.g._, with a vector-mapping, or ``vmap,'' operator), but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over tiled sub-tensors. The following code implements toy versions of both alternate formulations of `goom.log_matmul_exp`:
+As we show in our paper, `goom.log_matmul_exp` is expressible log-sum-exp of pairwise elementwise vector additions. A straightforward approach to implement it would be to compute all pairwise elementwise additions in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs (_e.g._, with a vector-mapping, or ``vmap,'' operator), but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over tiled sub-tensors.
+
+For clarity's sake, the following code implements both alternate naive formulations of `goom.log_matmul_exp`:
 
 ```python
 import torch
@@ -208,13 +210,13 @@ import generalized_orders_of_magnitude as goom
 DEVICE = 'cuda'  # change as needed
 goom.config.float_dtype = torch.float32
 
-def lmme_via_lse_of_outer_sums(log_x, log_y):
-    "Implements log-matmul-exp via log-sum-exp of outer sums."
+def naive_lmme_via_lse_of_outer_sums(log_x, log_y):
+    "Naively implements log-matmul-exp via log-sum-exp of outer sums."
     outer_sums = log_x.unsqueeze(-1) + log_y.unsqueeze(-3)
     return goom.log_sum_exp(outer_sums, dim=-2)
 
-def lmme_via_vmapped_vector_ops(log_x, log_y):
-    "Implements non-broadcasting log-matmul-exp via vmapped vector ops."
+def naive_lmme_via_vmapped_vector_ops(log_x, log_y):
+    "Naively implements log-matmul-exp via vmapped vector ops."
     _vve = lambda log_v1, log_v2: (log_v1 + log_v2).exp().real.sum()  # vec, vec -> scalar
     _mve = torch.vmap(_vve, in_dims=(0, None), out_dims=0)            # mat, vec -> vec
     _mme = torch.vmap(_mve, in_dims=(None, 1), out_dims=1)            # mat, mat -> mat
@@ -225,11 +227,11 @@ log_y = goom.log(torch.randn(3, 2, device=DEVICE))
 
 print('All methods compute the same result:\n')
 print(goom.log_matmul_exp(log_x, log_y), '\n')
-print(lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
-print(lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
+print(naive_lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
+print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
 
-Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, currently provide no support for developing highly optimized complex-typed kernels. As a compromise, we currently implement `goom.log_matmul_exp` so it delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is a sub-optimal compromise, both in terms of precision (we execute scaled dot-products over float-typed real tensors, instead of elementwise sums over complex-typed GOOMs) and performance (we must compute not only a scaled matrix product, but also per-row and per-column maximums on the left and right matrices, respectively, two elementwise subtractions, and two elementwise sums). In practice, we find that this initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
+Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing highly optimized complex-typed kernels over tiled sub-tensors. As a compromise, we currently implement `goom.log_matmul_exp` so it delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is a sub-optimal compromise, both in terms of precision (we execute scaled dot-products over float-typed real tensors, instead of elementwise sums over complex-typed GOOMs) and performance (we must compute not only a scaled matrix product, but also per-row and per-column maximums on the left and right matrices, respectively, two elementwise subtractions, and two elementwise sums). In practice, we find that this initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
 
 
 ## Background
