@@ -189,12 +189,16 @@ print(*longest_chains, sep='\n')
 
 ### Parallel Estimation of the Spectrum of Lyapunov Exponents over GOOMs
 
-The code for estimating spectra of Lyapunov exponents in parallel, incorporating our selective-resetting method, is at [https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents).
+The code for estimating spectra of Lyapunov exponents in parallel, incorporating our selective-resetting method, is at:
+
+[https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents)
 
 
 ### Deep RNN Modeling Sequences with Non-Diagonal SSMs over GOOMs
 
-The code for deep recurrent neural networks that capture long-range dependencies over GOOMs, allowing recurrent state elements to fluctuate freely over time steps, is at [https://github.com/glassroom/goom_ssm_rnn](https://github.com/glassroom/goom_ssm_rnn).
+The code implementing deep recurrent neural networks that capture long-range dependencies over GOOMs, allowing recurrent state elements to fluctuate freely over time steps, is at:
+
+[https://github.com/glassroom/goom_ssm_rnn](https://github.com/glassroom/goom_ssm_rnn)
 
 
 ## Limitations
