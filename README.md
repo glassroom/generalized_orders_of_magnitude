@@ -240,9 +240,11 @@ TODO: Update citation.
 
 ```
 @misc{heinsenkozachkov2025gooms,
-      title={Generalized Orders of Magnitude for Scalable, Parallel, High-Dynamic-Range Computation}, 
-      author={Franz A. Heinsen, Leo Kozachkov},
-      year={2025},
+    title={
+        Generalized Orders of Magnitude for
+        Scalable, Parallel, High-Dynamic-Range Computation},
+    author={Franz A. Heinsen, Leo Kozachkov},
+    year={2025},
 }
 ```
 
