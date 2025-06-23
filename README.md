@@ -110,7 +110,7 @@ print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 
 ### Other Functions over GOOMs:
 
-All implemented functions are defined in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, execute the following on a Python command line:
+We have implemented a variety of functions over GOOMs. All function definitions are in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, execute the following on a Python command line:
 
 ```python
 import generalized_orders_of_magnitude as goom
