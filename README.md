@@ -132,7 +132,7 @@ Our library has three configuration options, set to sensible defaults. They are:
 
 * `goom.config.cast_all_logs_to_complex` (boolean): If True, `goom.log()` always returns complex-typed tensors. If False, `goom.log()` returns float tensors whenever all real input elements are equal to or greater than zero. Setting this option to False can improve performance and reduce memory use when working with real values that are always non-negative, such as measures and probabilities. Default: True.
 
-* `goom.config.float_dtype` (torch.dtype): Float dtype of real and imaginary components of complex GOOMs, and of real GOOMs. Default: `torch.float32`, _i.e._, complex-typed GOOMs are represented by default as `torch.complex64` tensors with `torch.float32` real and imaginary components. For greater precision, set `goom.config.float_dtype = torch.float64`. Note: We have tested this configuration option only with `torch.float32` and `torch.float64`.
+* `goom.config.float_dtype` (torch.dtype): Float dtype of real and imaginary components of complex GOOMs, and of real GOOMs. Default: torch.float32, _i.e._, complex-typed GOOMs are represented by default as torch.complex64 tensors with torch.float32 real and imaginary components. For greater precision, set `goom.config.float_dtype = torch.float64`. Note: We have tested this configuration option only with torch.float32 and torch.float64.
 
 
 ## Replicating Published Results
