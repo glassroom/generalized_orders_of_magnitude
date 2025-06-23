@@ -110,7 +110,7 @@ print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 
 ### Other Functions over GOOMs:
 
-We have implemented a variety of functions over GOOMs. All function definitions are in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, execute the following on a Python command line:
+We have implemented a variety of functions over GOOMs. All function are defined in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, execute the following on a Python command line:
 
 ```python
 import generalized_orders_of_magnitude as goom
@@ -137,11 +137,11 @@ Our library has three configuration options, set to sensible defaults. They are:
 
 ## Replicating Published Results
 
-In our paper, we perform three representative experiments: (1) compounding up to one million real matrix products beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, allowing recurrent state elements to fluctuate freely over time steps. To replicate our experiments, follow the instructions below.
+In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, allowing recurrent state elements to fluctuate freely over time steps:
 
 ### Chains of Matrix Products that Compound Magnitudes Beyond Float Limits
 
-The code below will attempt to compute chains of up to 1M products of real random matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: If you run the code below on a CPU, it will take a LONG time, because all product chains finish successfully with GOOMs.
+The code below will attempt to compute chains of up to 1M products of real matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: If you run the code below on a CPU, it will take a LONG time, because all product chains finish successfully with GOOMs.
 
 ```python
 import torch
@@ -199,9 +199,7 @@ The code for deep recurrent neural networks that capture long-range dependencies
 
 ## Limitations
 
-As we show in our paper, `goom.log_matmul_exp` is expressible log-sum-exp of pairwise elementwise vector additions. A straightforward approach to implement it would be to compute all pairwise elementwise additions in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs (_e.g._, with a vector-mapping, or ``vmap,'' operator), but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over tiled sub-tensors.
-
-For clarity's sake, the following code implements both alternate naive formulations of `goom.log_matmul_exp`:
+As we show in our paper, `goom.log_matmul_exp` is expressible as a log-sum-exp of pairwise vector additions. A straightforward approach to implement it would be to compute all pairwise elementwise additions in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space, for two matrices of size $n \times d$ and $d \times m$, respectively. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs (_e.g._, with a vector-mapping, or ``vmap,'' operator), but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over tiled sub-tensors. For illustration, the following code implements both naive approaches:
 
 ```python
 import torch
@@ -231,7 +229,9 @@ print(naive_lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
 print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
 
-Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing highly optimized complex-typed kernels over tiled sub-tensors. As a compromise, we currently implement `goom.log_matmul_exp` so it delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is a sub-optimal compromise, both in terms of precision (we execute scaled dot-products over float-typed real tensors, instead of elementwise sums over complex-typed GOOMs) and performance (we must compute not only a scaled matrix product, but also per-row and per-column maximums on the left and right matrices, respectively, two elementwise subtractions, and two elementwise sums). In practice, we find that this initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
+Ideally, what we would want is _a highly optimized kernel that executes and aggregates results over tiled sub-tensors of complex dytpe_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing complex-typed kernels.
+
+As a compromise, we our initial implementation of `goom.log_matmul_exp` delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is sub-optimal, both in terms of precision and performance. See our paper for details. In practice, we find our initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
 
 
 ## Citing
