@@ -137,9 +137,9 @@ Our library has three configuration options, set to sensible defaults. They are:
 
 ## Replicating Published Results
 
-In our paper, we perform three representative experiments: (1) compounding up to one million real matrix products beyond standard floating-point limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, despite allowing recurrent state elements to fluctuate freely over time steps. To replicate our experiments, follow the instructions below.
+In our paper, we perform three representative experiments: (1) compounding up to one million real matrix products beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, allowing recurrent state elements to fluctuate freely over time steps. To replicate our experiments, follow the instructions below.
 
-### 1. Chains of Matrix Products that Compound Magnitudes toward Infinity
+### Chains of Matrix Products that Compound Magnitudes Beyond Float Limits
 
 The code below will attempt to compute chains of up to 1M products of real random matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: If you run the code below on a CPU, it will take a LONG time, because all product chains finish successfully with GOOMs.
 
@@ -187,14 +187,14 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
 print(*longest_chains, sep='\n')
 ```
 
-### 2. Parallel Estimation of the Spectrum of Lyapunov Exponents over GOOMs
+### Parallel Estimation of the Spectrum of Lyapunov Exponents over GOOMs
 
-See https://github.com/glassroom/parallel_lyapunov_exponents.
+The code for estimating spectra of Lyapunov exponents in parallel, incorporating our selective-resetting method, is at [https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents).
 
 
-### 3. Deep RNN Modeling Sequences with Non-Diagonal SSMs over GOOMs
+### Deep RNN Modeling Sequences with Non-Diagonal SSMs over GOOMs
 
-See https://github.com/glassroom/goom_ssm_rnn
+The code for deep recurrent neural networks that capture long-range dependencies over GOOMs, allowing recurrent state elements to fluctuate freely over time steps, is at [https://github.com/glassroom/goom_ssm_rnn](https://github.com/glassroom/goom_ssm_rnn).
 
 
 ## Limitations
