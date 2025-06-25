@@ -189,7 +189,7 @@ print(*longest_chains, sep='\n')
 
 ### Parallel Estimation of the Spectrum of Lyapunov Exponents over GOOMs
 
-The code for estimating spectra of Lyapunov exponents in parallel, incorporating our selective-resetting method, is at:
+The code for estimating spectra of Lyapunov exponents in parallel, via a prefix scan over GOOMs, incorporating our selective-resetting method, is at:
 
 [https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents)
 
