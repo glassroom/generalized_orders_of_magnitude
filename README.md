@@ -21,7 +21,7 @@ log_z = lmme(lmme(lmme(lmme(log_x, log_x), log_x), log_y), log_y)  # z should eq
 print('Computes over GOOMs?', torch.allclose(x, goom.exp(log_z)))  # computation succeeds!
 ```
 
-For replicating published results, see [here](#replicating-published-results). For important limitations of this initial implementation, both in terms of precision and performance, see [here](#limitations).
+For important limitations of this initial implementation, both in terms of precision and performance, see [here](#limitations). For instructions to replicate published results, see [here](#replicating-published-results). For an implementation of selective resetting, see [here](#selective-resetting).
 
 
 ## Installing
@@ -242,7 +242,7 @@ Ideally, what we would want is _a highly optimized kernel that executes and aggr
 As a compromise, our initial implementation of `goom.log_matmul_exp` delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is sub-optimal, both in terms of precision and performance. See our paper for details. In practice, we find our initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
 
 
-## A Note on Selective Resetting
+## Selective Resetting
 
 In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over real numbers instead of GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
 
