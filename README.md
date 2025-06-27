@@ -21,6 +21,8 @@ log_z = lmme(lmme(lmme(lmme(log_x, log_x), log_x), log_y), log_y)  # z should eq
 print('Computes over GOOMs?', torch.allclose(x, goom.exp(log_z)))  # computation succeeds!
 ```
 
+For replicating published results, see [here](#replicating-published-results). For important limitations of this initial implementation, both in terms of precision and performance, see [here](#limitations).
+
 
 ## Installing
 
