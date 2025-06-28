@@ -217,19 +217,20 @@ The following snippet of code implements LMME with the two naive approaches disc
 import torch
 import generalized_orders_of_magnitude as goom
 
-DEVICE = 'cuda'                          # change as needed
+DEVICE = 'cuda'  # change as needed
 
-def naive_lmme_via_lse_of_outer_sums(log_x, log_y):
+def naive_lmme_via_lse_of_outer_sums(log_x1, log_x2):
     "Naively implements log-matmul-exp via log-sum-exp of outer sums."
-    outer_sums = log_x.unsqueeze(-1) + log_y.unsqueeze(-3)
+    outer_sums = log_x1.unsqueeze(-1) + log_x2.unsqueeze(-3)
     return goom.log_sum_exp(outer_sums, dim=-2)
 
-def naive_lmme_via_vmapped_vector_ops(log_x, log_y):
+def naive_lmme_via_vmapped_vector_ops(log_x1, log_x2):
     "Naively implements log-matmul-exp via vmapped vector operations."
-    _vve = lambda log_v1, log_v2: (log_v1 + log_v2).exp().real.sum()  # vec, vec -> scalar
-    _mve = torch.vmap(_vve, in_dims=(0, None), out_dims=0)            # mat, vec -> vec
-    _mme = torch.vmap(_mve, in_dims=(None, 1), out_dims=1)            # mat, mat -> mat
-    return goom.log(_mme(log_x, log_y))
+    _vve = lambda log_v1, log_v2: (log_v1 + log_v2).exp().real.sum()   # vec, vec -> scalar
+    _mve = torch.vmap(_vve, in_dims=(0, None), out_dims=0)             # mat, vec -> vec
+    _mme = torch.vmap(_mve, in_dims=(None, 1), out_dims=1)             # mat, mat -> mat
+    c1, c2 = (log_x1.real.detach().max(), log_x2.real.detach().max())  # scaling constants
+    return goom.log(_mme(log_x1 - c1, log_x2 - c2)) + c1 + c2
     
 log_x = goom.log(torch.randn(4, 3, device=DEVICE))
 log_y = goom.log(torch.randn(3, 2, device=DEVICE))
