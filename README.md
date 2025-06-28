@@ -207,18 +207,17 @@ The code implementing deep recurrent neural networks that capture long-range dep
 
 Our initial implementation of `goom.log_matmul_exp` (LMME) is sub-optimal, both in terms of precision and performance. As we show in our paper, LMME is expressible as a log-sum-exp of outer sums over GOOMs. Perhaps the most obvious approach to implement LMME would be to compute all outer sums in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs, with a vector-mapping operator like `torch.vmap`, but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over _tiled_ sub-tensors.
 
-Ideally, what we would want is to implement `goom.log_matmul_exp` so it delegates the bulk of parallel computation to a highly optimized kernel that executes and aggregates results over _tiled sub-tensors of complex dtype_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing _complex-typed kernels_.
+Ideally, what we would want is to implement LMME so it delegates the bulk of parallel computation to a highly optimized kernel that executes and aggregates results over _tiled sub-tensors of complex dtype_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing _complex-typed kernels_.
 
-As a compromise, our initial implementation of `goom.log_matmul_exp` delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over float tensors. See our code and our paper for all details. We recognize this initial implementation is sub-optimal, both in terms of precision and performance, but we find that it works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying float matrix product on highly parallel hardware. In our view, this is a reasonable initial tradeoff for applications that must be able to handle a greater dynamic range than is possible with torch.float32 and torch.float64.
+As a compromise, our initial implementation of LMME delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over float tensors. See our code and our paper for all details. In practice, we find that our compromise implementation works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying float matrix product on recent Nvidia GPUs. In our view, this is a reasonable initial tradeoff for applications that must be able to handle a greater dynamic range than is possible with torch.float32 and torch.float64.
 
-The following snippet of code implements the two naive approaches discussed above (log-sum-exp of outer sums, and vmapped vector operations), in case you want to experiment with them:
+The following snippet of code implements LMME with the two naive approaches discussed above (log-sum-exp of outer sums, vmapped vector operations), in case you want to experiment with them:
 
 ```python
 import torch
 import generalized_orders_of_magnitude as goom
 
-DEVICE = 'cuda'  # change as needed
-goom.config.float_dtype = torch.float32
+DEVICE = 'cuda'                          # change as needed
 
 def naive_lmme_via_lse_of_outer_sums(log_x, log_y):
     "Naively implements log-matmul-exp via log-sum-exp of outer sums."
@@ -226,7 +225,7 @@ def naive_lmme_via_lse_of_outer_sums(log_x, log_y):
     return goom.log_sum_exp(outer_sums, dim=-2)
 
 def naive_lmme_via_vmapped_vector_ops(log_x, log_y):
-    "Naively implements log-matmul-exp via vmapped vector ops."
+    "Naively implements log-matmul-exp via vmapped vector operations."
     _vve = lambda log_v1, log_v2: (log_v1 + log_v2).exp().real.sum()  # vec, vec -> scalar
     _mve = torch.vmap(_vve, in_dims=(0, None), out_dims=0)            # mat, vec -> vec
     _mme = torch.vmap(_mve, in_dims=(None, 1), out_dims=1)            # mat, mat -> mat
