@@ -148,7 +148,7 @@ The code below will attempt to compute chains of up to 1M products of real matri
 ```python
 import torch
 import generalized_orders_of_magnitude as goom
-from tqdm import tqdm
+from tqdm import tqdm  # you must install from https://github.com/tqdm/tqdm
 
 goom.config.keep_logs_finite = True
 goom.config.float_dtype = torch.float32
@@ -186,6 +186,7 @@ for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64
             'run_number': run_number, 'd': d, 'n_completed': t + 1,
         })
 
+torch.save(longest_chains, 'longest_chains.pt')  # load with torch.load('longest_chains.pt')
 print(*longest_chains, sep='\n')
 ```
 
