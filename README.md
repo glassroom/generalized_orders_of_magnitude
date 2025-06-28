@@ -205,9 +205,13 @@ The code implementing deep recurrent neural networks that capture long-range dep
 
 ## Limitations
 
-As we show in our paper, `goom.log_matmul_exp` is expressible as a log-sum-exp of pairwise vector additions over GOOMs. A straightforward approach to implement it would be to compute all pairwise elementwise additions in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs, with a vector-mapping, or ``vmap,'' operator, but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over _tiled_ sub-tensors.
+Our initial implementation of `goom.log_matmul_exp` (LMME) is sub-optimal, both in terms of precision and performance. As we show in our paper, LMME is expressible as a log-sum-exp of outer sums over GOOMs. Perhaps the most obvious approach to implement LMME would be to compute all outer sums in parallel, then apply log-sum-exp, but doing so would be impractical, because it would require $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. Another obvious approach would be to apply log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs, with a vector-mapping operator like `torch.vmap`, but doing so would run into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over _tiled_ sub-tensors.
 
-The following code implements both naive approaches, in case you want to experiment with them:
+Ideally, what we would want is to implement `goom.log_matmul_exp` so it delegates the bulk of parallel computation to a highly optimized kernel that executes and aggregates results over _tiled sub-tensors of complex dtype_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing _complex-typed kernels_.
+
+As a compromise, our initial implementation of `goom.log_matmul_exp` delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over float tensors. See our code and our paper for all details. We recognize this initial implementation is sub-optimal, both in terms of precision and performance, but we find that it works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying float matrix product on highly parallel hardware. In our view, this is a reasonable initial tradeoff for applications that must be able to handle a greater dynamic range than is possible with torch.float32 and torch.float64.
+
+The following snippet of code implements the two naive approaches discussed above (log-sum-exp of outer sums, and vmapped vector operations), in case you want to experiment with them:
 
 ```python
 import torch
@@ -236,10 +240,6 @@ print(goom.log_matmul_exp(log_x, log_y), '\n')
 print(naive_lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
 print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
-
-Ideally, what we would want is _a highly optimized kernel that executes and aggregates results over tiled sub-tensors of complex dytpe_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, at the moment provide no support for developing complex-typed kernels.
-
-As a compromise, our initial implementation of `goom.log_matmul_exp` delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over real numbers. We recognize this initial implementation of `goom.log_matmul_exp` is sub-optimal, both in terms of precision and performance. See our paper for details. In practice, we find our initial implementation of `goom.log_matmul_exp` works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying real-valued matrix product on highly parallel hardware---a reasonable initial tradeoff, in our view, for applications that must be able to handle a greater dynamic range of real magnitudes.
 
 
 ## Selective Resetting
