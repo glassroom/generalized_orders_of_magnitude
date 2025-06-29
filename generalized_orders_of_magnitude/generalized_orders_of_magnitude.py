@@ -30,6 +30,8 @@ class _CustomizedTorchAbs(torch.autograd.Function):
     Applies torch.abs(), but with derivatives that are -1 for negative input
     values or 1 for non-negative ones, including at zero, for backpropagation.
     """
+    generate_vmap_rule = True
+
     @staticmethod
     def forward(inp):
         out = torch.abs(inp)
@@ -51,13 +53,15 @@ class _CustomizedTorchLog(torch.autograd.Function):
     Applies torch.log(), but with derivatives that are always finite for
     backpropagation, and, if specified in config, keeping outputs finite.
     """
+    generate_vmap_rule = True
+
     @staticmethod
     def forward(inp):
-        out = torch.log(inp)
-        if config.keep_logs_finite:
-            snn = torch.finfo(config.float_dtype).smallest_normal
-            finite_floor_that_exps_to_zero = math.log(snn) * 2
-            out.clamp_(min=finite_floor_that_exps_to_zero)
+        log_inp = torch.log(inp)
+        snn = torch.finfo(config.float_dtype).smallest_normal
+        finite_floor = math.log(snn) * 2  # exps to zero in float_dtype
+        keep_finite_idx = (log_inp < finite_floor) & config.keep_logs_finite
+        out = torch.where(keep_finite_idx, finite_floor, log_inp)
         return out
 
     @staticmethod
@@ -77,6 +81,8 @@ class _CustomizedTorchExp(torch.autograd.Function):
     Applies torch.exp(), but with derivatives that are always non-zero for
     backpropagation. Works with both float and complex input tensors.
     """
+    generate_vmap_rule = True
+
     @staticmethod
     def forward(inp):
         out = torch.exp(inp)
