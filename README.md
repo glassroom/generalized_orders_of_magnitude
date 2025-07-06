@@ -8,10 +8,10 @@ import generalized_orders_of_magnitude as goom
 
 DEVICE = 'cuda'                                                    # change as needed
 goom.config.float_dtype = torch.float64                            # real and imag dtype
-mm, lmme = (torch.matmul, goom.log_matmul_exp)                     # for easier legibility
+mm, lmme = (torch.matmul, goom.log_matmul_exp)                     # for legibility
 
 x = torch.randn(3, 3, dtype=torch.float64, device=DEVICE) * 1e128  # large magnitudes
-y = torch.linalg.inv(x)                                            # small magnitudes
+y = torch.linalg.inv(x)                                            # inverts mult by x
 z = mm(mm(mm(mm(x, x), x), y), y)                                  # z should equal x
 print('Computes over float64?', torch.allclose(x, z))              # computation fails!
 
