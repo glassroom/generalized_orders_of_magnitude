@@ -141,7 +141,7 @@ Our library has three configuration options, set to sensible defaults. They are:
 
 In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, allowing recurrent state elements to fluctuate freely over time steps:
 
-### Chains of Matrix Products that Compound Magnitudes Beyond Float Limits
+### Chains of Matrix Products that Compound Magnitudes beyond Float Limits
 
 The code below will attempt to compute chains of up to 1M products of real matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: The code below will take a LONG time to execute, because all product chains finish successfully with GOOMs.
 
