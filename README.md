@@ -128,13 +128,19 @@ To see the docstring and source code of any implemented function, type its name 
 
 ## Configuration Options
 
-Our library has three configuration options, set to sensible defaults. They are:
+Our library has three configuration options, set to sensible defaults:
 
 * `goom.config.keep_logs_finite` (boolean): If True, `goom.log()` always returns finite values. The finite value returned for any input element numerically equal to zero will numerically exponentiate to zero in the specified float dtype. If False, `goom.log()` returns `float("-inf")` values for inputs numerically equal to zero. Default: True. 
 
 * `goom.config.cast_all_logs_to_complex` (boolean): If True, `goom.log()` always returns complex-typed tensors. If False, `goom.log()` returns float tensors whenever all real input elements are equal to or greater than zero. Setting this option to False can improve performance and reduce memory use when working with real values that are always non-negative, such as measures and probabilities. Default: True.
 
 * `goom.config.float_dtype` (torch.dtype): Float dtype of real and imaginary components of complex GOOMs, and of real GOOMs. Default: torch.float32, _i.e._, complex-typed GOOMs are represented by default as torch.complex64 tensors with torch.float32 real and imaginary components. For greater precision, set `goom.config.float_dtype = torch.float64`. Note: We have tested this configuration option only with torch.float32 and torch.float64.
+
+To view the current configuration, use:
+
+```python
+print(goom.config)
+```
 
 
 ## Replicating Published Results
