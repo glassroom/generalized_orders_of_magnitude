@@ -159,17 +159,17 @@ from tqdm import tqdm  # you must install from https://github.com/tqdm/tqdm
 goom.config.keep_logs_finite = True
 goom.config.float_dtype = torch.float32
 
-DEVICE = 'cuda'                                # change as needed
-n = 1_000_000                                  # maximum chain length
+DEVICE = 'cuda'
 n_runs = 30                                    # number of runs per matrix size
 d_list = [8, 16, 32, 64, 128, 256, 512, 1024]  # square matrix sizes
+n_steps = 1_000_000                            # maximum chain length
 
 longest_chains = []
 for dtype in [torch.float32, torch.float64]:
-    for run_number in tqdm(range(n_runs), desc=f'Runs over R with {dtype}'):
+    for run_number in range(n_runs):
         for d in d_list:
             state = torch.randn(d, d, dtype=dtype, device=DEVICE)
-            for t in range(n):
+            for t in tqdm(range(n_steps), desc=f'Chain over {dtype}, run {run_number}, matrix size {d}'):
                 update = torch.randn(d, d, dtype=dtype, device=DEVICE)
                 state = torch.matmul(state, update)
                 if not state.isfinite().all().item():
@@ -179,10 +179,10 @@ for dtype in [torch.float32, torch.float64]:
                 'run_number': run_number, 'd': d, 'n_completed': t + 1,
             })
 
-for run_number in tqdm(range(n_runs), desc="Runs over GOOMs with torch.complex64"):
+for run_number in range(n_runs):
     for d in d_list:
         log_state = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
-        for t in range(n):
+        for t in tqdm(range(n_steps), desc=f'Chain over Complex64 GOOMs, run {run_number}, matrix size {d}'):
             log_update = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
             log_state = goom.log_matmul_exp(log_state, log_update)
             if not log_state.isfinite().all().item():
