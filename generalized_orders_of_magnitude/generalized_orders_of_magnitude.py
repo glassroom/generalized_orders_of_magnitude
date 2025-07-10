@@ -119,7 +119,7 @@ def exp(log_x):
     return _CustomizedTorchExp.apply(log_x).real
 
 
-# Function for computing log-matmul-exp:
+# Functions for computing log-matmul-exp:
 
 def log_matmul_exp(log_x1, log_x2):
     """
@@ -131,6 +131,41 @@ def log_matmul_exp(log_x1, log_x2):
     c2 = log_x2.real.detach().max(dim=-2, keepdim=True).values.clamp(min=0)
     x = torch.matmul(exp(log_x1 - c1), exp(log_x2 - c2))
     return log(x) + c1 + c2
+
+def alternate_log_matmul_exp(log_x1, log_x2, chunk_size=32):
+    """
+    Broadcastable log(exp(log_x1) @ exp(log_x2)), implemented by composition
+    of vmapped log-sum-exp-of-sum operations. Much slower, but more precise.
+    Inputs:
+        log_x1: log-tensor of shape [..., d1, d2].
+        log_x2: log-tensor of shape [..., d2, d3].
+        chunk_size: (optional) int, chunk size for torch.vmap. Default: 32.
+    Outputs:
+        log_y: log-tensor of shape [..., d1, d3].
+    """
+    # Get log-scaling constants:
+    c1 = log_x1.real.detach().max(dim=-1, keepdim=True).values
+    c2 = log_x2.real.detach().max(dim=-2, keepdim=True).values
+
+    # Get log-scaled operands:
+    log_s1 = log_x1 - c1
+    log_s2 = log_x2 - c2
+
+    # Broadcast preceding dims and flatten them into a single dim:
+    d1, d2, d3 = (*log_s1.shape[-2:], log_s2.shape[-1])
+    broadcast_szs = torch.broadcast_shapes(log_s1.shape[:-2], log_s2.shape[:-2])
+    log_s1 = log_s1.expand(*broadcast_szs, d1, d2).view(-1, d1, d2)                # [<flattened dim>, d1, d2]
+    log_s2 = log_s2.expand(*broadcast_szs, d2, d3).view(-1, d2, d3)                # [<flattened dim>, d2, d3]
+
+    # Define vmapped log-sum-exp-of-sum operations:
+    _vve = lambda row_vec, col_vec: exp(row_vec + col_vec).sum()                   # vec, vec -> scalar
+    _mve = torch.vmap(_vve, in_dims=(0, None), out_dims=0, chunk_size=chunk_size)  # mat, vec -> vec
+    _mme = torch.vmap(_mve, in_dims=(None, 1), out_dims=1, chunk_size=chunk_size)  # mat, mat -> mat
+    _multi_mme = torch.vmap(_mme, chunk_size=chunk_size)                           # n mats, n mats -> n mats
+
+    # Compute, reshape, and return result:
+    log_y = log(_multi_mme(log_s1, log_s2)) + c1 + c2                              # [<concat dims>, d1, d3]
+    return log_y.view(*broadcast_szs, d1, d3)                                      # [..., d1, d3]
 
 
 # Functions for computing log-sums and log-means of exponentials:
