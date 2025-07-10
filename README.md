@@ -254,7 +254,7 @@ print(naive_lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
 print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
 
-Our library provides a broadcastable implementation of LMME as a composition of vmapped vector operations, as `goom.alternate_log_matmul_exp`. It is _much slower_ than the current default implementation of LMME, especially for larger matrices, but offers greater precision. In practice, we have found it unnecessary to use it, because the current default implementation, despite being sub-optimal, has proven to work well in diverse experiments. Please see our source code for details.
+For applications that require more precision, we provide an alternate broadcastable implementation of LMME via composition of vmapped vector operations: `goom.alternate_log_matmul_exp`. It offers greater precision but is _much slower_ than the current default implementation of LMME, especially for larger matrices. In practice, we have found its use unnecessary, because the current default implementation, despite being a sub-optimal compromise, has proven to work well in diverse experiments. Please see our source code for details.
 
 
 ## Selective Resetting
