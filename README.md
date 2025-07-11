@@ -254,7 +254,7 @@ print(naive_lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
 print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
 
-Note: For applications that truly require more precision, we provide an alternate implementation of LMME that applies vmapped vector operations, broadcasting over preceding dimensions: `goom.alternate_log_matmul_exp`. This alternate implementation is more precise but also _much slower_ than `goom.log_matmul_exp`, especially for larger input tensors. In our experiments, we have found it unnecessary to use `goom.alternate_log_matmul_exp`. Please see its docstring for usage details.
+Note: For applications that truly require more precision, we provide `goom.alternate_log_matmul_exp`, an alternate implementation of LMME that applies vmapped vector operations, broadcasting over any preceding dimensions. This alternate implementation is more precise but also _much slower_ than `goom.log_matmul_exp`, especially for larger input tensors. In our experiments, we have found it unnecessary to use `goom.alternate_log_matmul_exp`. Please see its docstring for usage details.
 
 
 ## Selective Resetting
