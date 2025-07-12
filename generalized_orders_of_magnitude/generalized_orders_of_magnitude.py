@@ -157,7 +157,7 @@ def alternate_log_matmul_exp(log_x1, log_x2, chunk_size=32):
     log_s1 = log_s1.expand(*broadcast_szs, d1, d2).view(-1, d1, d2)                # [<flattened dim>, d1, d2]
     log_s2 = log_s2.expand(*broadcast_szs, d2, d3).view(-1, d2, d3)                # [<flattened dim>, d2, d3]
 
-    # Define vmapped log-sum-exp-of-sum operations:
+    # Define vmapped sum-exp-of-outer-sum operations:
     _vve = lambda row_vec, col_vec: exp(row_vec + col_vec).sum()                   # vec, vec -> scalar
     _mve = torch.vmap(_vve, in_dims=(0, None), out_dims=0, chunk_size=chunk_size)  # mat, vec -> vec
     _mme = torch.vmap(_mve, in_dims=(None, 1), out_dims=1, chunk_size=chunk_size)  # mat, mat -> mat
