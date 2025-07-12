@@ -212,6 +212,8 @@ The code implementing deep recurrent neural networks that capture long-range dep
 
 ## Limitations
 
+### Precision and Performance
+
 Our initial implementation of `goom.log_matmul_exp` (LMME) is sub-optimal, both in terms of precision and performance. Ideally, what we want is an implementation of LMME that delegates the bulk of parallel computation to a highly optimized kernel that executes and aggregates results over _tiled sub-tensors of complex dtype_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, currently provide no support for developing _complex-typed kernels_ (as of mid-2025). As we discuss in our paper, we considered implementing LMME so it computes all outer sums in parallel, then applies log-sum-exp, but decided not to do so, because it requires $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. We also considered applying log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs, with a vector-mapping operator like `torch.vmap`, but decided not to do so, because it runs into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over _tiled_ sub-tensors.
 
 As a compromise, our initial implementation of LMME delegates the bulk of parallel computation to PyTorch's existing, highly optimized, low-level implementation of the dot-product over float tensors, limiting precision to that of scalar products in the specified floating-point format. In practice, we find that our initial implementation works well in diverse experiments, incurring execution times that are approximately twice as long as the underlying float matrix product on recent Nvidia GPUs. In our view, this is a reasonable initial tradeoff for applications that must be able to handle a greater dynamic range than is possible with torch.float32 and torch.float64.
@@ -255,6 +257,11 @@ print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
 
 Note: For applications that truly require more precision, we provide `goom.alternate_log_matmul_exp`, an alternate implementation of LMME that applies vmapped vector operations, broadcasting over any preceding dimensions. This alternate implementation is more precise but also _much slower_ than `goom.log_matmul_exp`, especially for larger input tensors. In our experiments, we have found it unnecessary to use `goom.alternate_log_matmul_exp`. Please see its docstring for usage details.
+
+
+### Other Limitations
+
+The current implementaton of `goom.log` is incompatible with `torch.vmap`, because the latter cannot operate over flow control code, such as the `if` statement evaluated inside `goom.log` to determine whether to cast all logarithms to complex tensors. The PyTorch team is working on [a solution to the flow-control issue](https://docs.pytorch.org/docs/stable//generated/torch.cond.html), but as of mid-2025 it is still a prototype, not recommended for use in applications. As a workaround, you can edit the code that implements `goom.log` to remove the `if` statement and always return a complex-typed tensor.
 
 
 ## Selective Resetting
