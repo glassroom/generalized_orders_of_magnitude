@@ -272,6 +272,8 @@ This repository provides a script for comparing Complex64 GOOMs to Float32 and C
 python compare_gooms_to_floats.py
 ```
 
+For every comparison, the script will generate a plot and save it to disk as a png image.
+
 
 ## Selective Resetting
 
