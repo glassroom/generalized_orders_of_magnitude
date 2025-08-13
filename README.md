@@ -264,6 +264,15 @@ Note: For applications that truly require more precision, we provide `goom.alter
 The current implementaton of `goom.log` is incompatible with `torch.vmap`, because the latter cannot operate over flow control code, such as the `if` statement evaluated inside `goom.log` to determine whether to cast all logarithms to complex tensors. The PyTorch team is working on [a solution to the flow-control issue](https://docs.pytorch.org/docs/stable//generated/torch.cond.html), but as of mid-2025 it is still a prototype, not recommended for use in applications. As a workaround, you can edit the code that implements `goom.log` to remove the `if` statement and always return a complex-typed tensor.
 
 
+## Precision and Performance versus Floating-Point Formats
+
+This repository provides a script for comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute:
+
+```
+python compare_gooms_to_floats.py
+```
+
+
 ## Selective Resetting
 
 In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over real numbers instead of GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
