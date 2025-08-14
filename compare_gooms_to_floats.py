@@ -84,12 +84,15 @@ def plot_two_arg_errors(x, y, z, z_via_goom, z_via_float, func_desc):
     axis = axes[0]
     axis.set(title=goom_title, xlabel=r'$\log_{10} x$', ylabel=r'$\log_{10} y$')
     img = np.log10(np.abs(z - z_via_goom))
-    _colorable = axis.imshow(img, origin='lower', extent=img_extent, vmax=np.ceil(img.max()), cmap='viridis')
+    vmax = np.ceil(img.max())
+    _colorable = axis.imshow(img, origin='lower', extent=img_extent, vmax=vmax, cmap='viridis')
+    axis.set(xticks=axis.get_yticks())
 
     axis = axes[1]
     axis.set(title=float_title, xlabel=r'$\log_{10} x$')
     img = np.log10(np.abs(z - z_via_float))
-    axis.imshow(img, origin='lower', extent=img_extent, vmax=np.ceil(img.max()), cmap='viridis')
+    axis.imshow(img, origin='lower', extent=img_extent, vmax=vmax, cmap='viridis')
+    axis.set(xticks=axis.get_yticks())
 
     fig.colorbar(_colorable, shrink=0.7, ax=axes.ravel().tolist(), label=r'$\log_{10} \left| z - \hat{z} \right| $')   
     fig.suptitle(f'Magnitude of Error versus Float128 for {func_desc}')
@@ -129,18 +132,18 @@ def plot_execution_times(times, dtype):
     goom_title, float_title = get_goom_and_float_titles(dtype)
 
     fig, axis = plt.subplots(figsize=FIG_SIZE, layout='constrained')
-
     df = pd.DataFrame(times)
-    df.plot.barh(x='func_desc', y='relative_time', ax=axis, legend=False)
+    df.plot.barh(ax=axis, x='func_desc', y='relative_time', legend=False, alpha=0.7)
+    axis.set(xlabel=f'Execution Time, {goom_title} as a Multiple of {float_title}\n(Mean of {N_RUNS_FOR_TIME_BENCHMARKS} Runs, Nvidia GPU)')
+    axis.set(xticks=[2 * i for i in range(int(df.relative_time.max().round()) // 2 + 2)])
+    axis.set(ylabel='')
+    axis.invert_yaxis()
+    axis.grid(axis='x')
 
     n_elems_in_millions = int(10 ** np.floor(np.log10(N_SAMPLES_FOR_TIME_BENCHMARKS) - 6))
     axis.set(
         title='Relative Execution Time for One- and Two-Argument Functions,\n' \
         + f'{goom_title} versus {float_title}, {n_elems_in_millions}M Elements in Parallel')
-    axis.set(xlabel=f'Execution Time, {goom_title} as a Multiple of {float_title}\n(Mean of {N_RUNS_FOR_TIME_BENCHMARKS} Runs, Nvidia GPU)')
-    axis.set(ylabel='')
-    axis.invert_yaxis()
-    axis.grid(axis='x')
     return fig
 
 
@@ -257,7 +260,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
 
 
     # Execution times on one-argument functions:
-    print(f'\n### Execution times on one-argument functions, {goom_title} vs {float_title} ###')
+    print(f'\n### Execution times on one- and two-argument functions, {goom_title} vs {float_title} ###')
 
     float_x = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)  # torch.float32   OR torch.float64
     float_y = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)  # torch.float32   OR torch.float64
@@ -294,7 +297,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
         [2,  'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   goom.log_add_exp],
         [2,  'Scalar Product',      lambda float_x, float_y: float_x * float_y,   lambda log_x, log_y: log_x + log_y],
     ]:
-        print(f'{func_desc.capitalize()} ({n_args} args), {N_RUNS_FOR_TIME_BENCHMARKS} runs, {goom_title} vs {float_title}...')
+        print(f'{func_desc.capitalize()} ({n_args} arg/s), {N_RUNS_FOR_TIME_BENCHMARKS} runs, {goom_title} vs {float_title}...')
 
         goom_mean_time = torch.utils.benchmark.Timer(
             stmt={ 1: 'goom_func(log_x)', 2: 'goom_func(log_x, log_y)', }[n_args],
