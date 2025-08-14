@@ -21,13 +21,13 @@ TORCH_FLOAT_DTYPES_TO_TEST = [torch.float32, torch.float64]  # the two highest-p
 
 N_RUNS_FOR_TIME_BENCHMARKS = 30                 # will measure execution time as the mean of this number of runs
 N_SAMPLES_FOR_TIME_BENCHMARKS = 1024 * 100_000  # will measure execution time for this number of samples in parallel
-N_SAMPLES_FOR_ONE_ARG_ERRORS = 1024 * 10_000    # will measure error for this number of samples
-N_SAMPLES_FOR_TWO_ARG_ERRORS = 1024 * 10        # will measure error for *the square of* this number of samples
-N_DIMS_FOR_MATMUL_ERROR = 1024                  # will measure error for a square matrix of this size
+N_SAMPLES_FOR_ONE_ARG_ERRORS = 1024 * 10_000    # will measure error vs Float128 for this number of samples
+N_SAMPLES_FOR_TWO_ARG_ERRORS = 1024 * 10        # will measure error vs Float128 for *the square of* this number of samples
+N_DIMS_FOR_MATMUL_ERROR = 1024                  # will measure error vs Float128 for a square matrix of this size
 
-FIG_SIZE = (7, 3.5)                   # size in inches of all figures
-FIG_DPI = 300                         # dots per inch of all figures
-FIG_FILENAME_PREFIX = 'appendix_fig'  # all files will have names starting with this prefix
+FIG_SIZE = (7, 3.5)                   # size of all figures in inches
+FIG_DPI = 300                         # dots per inch of all figures, when saved as PNGs
+FIG_FILENAME_PREFIX = 'appendix_fig'  # all PNG files will have names starting with this prefix
 
 
 # Helper functions:
