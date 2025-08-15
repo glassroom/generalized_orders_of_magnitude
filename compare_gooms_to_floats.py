@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 import generalized_orders_of_magnitude as goom
 
+plt.rcParams.update({'font.size': 8})
 np.seterr(all='ignore')  # only for prettier command-line output; OK to remove
 
 
@@ -19,11 +20,11 @@ np.seterr(all='ignore')  # only for prettier command-line output; OK to remove
 DEVICE = 'cuda'  # change as needed
 TORCH_FLOAT_DTYPES_TO_TEST = [torch.float32, torch.float64]  # the two highest-precision floats supported by cuda
 
-N_RUNS_FOR_TIME_BENCHMARKS = 30                 # will measure execution time as the mean of this number of runs
-N_SAMPLES_FOR_TIME_BENCHMARKS = 1024 * 100_000  # will measure execution time for this number of samples in parallel
-N_SAMPLES_FOR_ONE_ARG_ERRORS = 1024 * 10_000    # will measure error vs Float128 for this number of samples
-N_SAMPLES_FOR_TWO_ARG_ERRORS = 1024 * 10        # will measure error vs Float128 for *the square of* this number of samples
-N_DIMS_FOR_MATMUL_ERROR = 1024                  # will measure error vs Float128 for a square matrix of this size
+N_RUNS_FOR_TIME_BENCHMARKS = 30                         # will measure execution time as the mean of this number of runs
+N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS = 1024 * 100_000  # will measure execution time for this number of samples in parallel
+N_SAMPLES_FOR_ONE_ARG_ERRORS = 1024 * 10_000            # will measure error vs Float128 for this number of samples
+N_SAMPLES_FOR_TWO_ARG_ERRORS = 1024 * 10                # will measure error vs Float128 for *the square of* this number of samples
+N_DIMS_FOR_MATMUL_ERROR = 1024                          # will measure error vs Float128 for a square matrix of this size
 
 FIG_SIZE = (7, 3.5)                   # size of all figures in inches
 FIG_DPI = 300                         # dots per inch of all figures, when saved as PNGs
@@ -140,11 +141,37 @@ def plot_execution_times(times, dtype):
     axis.invert_yaxis()
     axis.grid(axis='x')
 
-    n_elems_in_millions = int(10 ** np.floor(np.log10(N_SAMPLES_FOR_TIME_BENCHMARKS) - 6))
+    n_elems_in_millions = int(10 ** np.floor(np.log10(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS) - 6))
     axis.set(
         title='Relative Execution Time for One- and Two-Argument Functions,\n' \
         + f'{goom_title} versus {float_title}, {n_elems_in_millions}M Elements in Parallel')
     return fig
+
+
+def plot_peak_memory_allocs(peak_allocs, dtype):
+    goom_title, float_title = get_goom_and_float_titles(dtype)
+
+    fig, axis = plt.subplots(figsize=FIG_SIZE, layout='constrained')
+    df = pd.DataFrame(peak_allocs)
+    df.plot.barh(ax=axis, x='func_desc', y='relative_peak_alloc', legend=False, alpha=0.7)
+    axis.set(xlabel=f'Peak Memory Allocated, {goom_title} as a Multiple of {float_title}\n(Including Creation of Input and Output Tensors, on an Nvidia GPU)')
+    axis.set(ylabel='')
+    axis.invert_yaxis()
+    axis.grid(axis='x')
+
+    n_elems_in_millions = int(10 ** np.floor(np.log10(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS) - 6))
+    axis.set(
+        title='Peak Memory Allocated for One- and Two-Argument Functions,\n' \
+        + f'{goom_title} versus {float_title}, {n_elems_in_millions}M Elements in Parallel')
+    return fig
+
+
+# Function for saving and closing figures:
+
+def save_and_close_fig(fig, fig_desc):
+    fig.savefig(f'{FIG_FILENAME_PREFIX}_{fig_desc}.png', dpi=FIG_DPI, bbox_inches='tight')
+    plt.close(fig)
+
 
 
 # Code for computing comparisons, generating figures, and saving them:
@@ -156,6 +183,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
 
     print(f'\n### {goom_title} vs {float_title} ###')
 
+
     # Set dtype for GOOM real and imag components:
     goom.config.float_dtype = dtype
 
@@ -163,7 +191,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     # Measure errors on one-argument functions:
     print(f'\n### Errors on one-argument functions, {goom_title} vs {float_title} ###')
 
-    p = np.round(np.abs(np.log10(torch.finfo(dtype).resolution)))                  # min/max power of 10 to test
+    p = np.round(np.abs(np.log10(torch.finfo(dtype).resolution)))                  # max neg/pos power of 10 to test
     x = 10 ** np.linspace(-p, p, N_SAMPLES_FOR_ONE_ARG_ERRORS, dtype=np.float128)  # np.float128
     float_x = cast_np_float128_to_torch_float(x, dtype, DEVICE)                    # torch.float32   OR torch.float64
     log_x = goom.log(float_x)                                                      # torch.complex64 OR torch.complex128
@@ -173,44 +201,39 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     y_via_float = (1.0 / float_x).to('cpu').numpy()
     y_via_goom = goom.exp(torch.complex(real=-log_x.real, imag=log_x.imag)).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Reciprocals, $y = 1 / x$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_reciprocals.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_reciprocals')
 
     print(f'Square roots, {goom_title} vs {float_title}...')
     y = np.sqrt(x)
     y_via_float = torch.sqrt(float_x).to('cpu').numpy()
     y_via_goom = goom.exp(log_x * 0.5).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Square Roots, $y = \sqrt{x}$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_square_roots.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_square_roots')
 
     print(f'Squares, {goom_title} vs {float_title}...')
     y = x ** 2
     y_via_float = (float_x ** 2).to('cpu').numpy()
     y_via_goom = goom.exp(log_x * 2).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Squares, $y = x^2$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_squares.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_squares')
 
     print(f'Natural logarithms, {goom_title} vs {float_title}...')
     y = np.log(x)
     y_via_float = torch.log(float_x).to('cpu').numpy()
     y_via_goom = log_x.real.to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Natural Logarithms, $y = \log x$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_natural_logarithms.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_natural_logarithms')
 
     print(f'Exponentials, {goom_title} vs {float_title}...')
     # Use smaller magnitudes to test exp():
-    x = 10 ** np.linspace(-1, 1, N_SAMPLES_FOR_ONE_ARG_ERRORS, dtype=np.float128)  # np.float128
+    x = 10 ** np.linspace(-5, 1, N_SAMPLES_FOR_ONE_ARG_ERRORS, dtype=np.float128)  # np.float128
     float_x = cast_np_float128_to_torch_float(x, dtype, DEVICE)                    # torch.float32   OR torch.float64
     log_x = goom.log(float_x)                                                      # torch.complex64 OR torch.complex128
     y = np.exp(x)
     y_via_float = torch.exp(float_x).to('cpu').numpy()
     y_via_goom = torch.exp(goom.exp(log_x)).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Exponentials, $y = e^x$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_exponentials.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_exponentials')
 
 
     # Measure errors on two-argument functions:
@@ -230,16 +253,14 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     z_via_float = (float_x[None, :] + float_y[:, None]).to('cpu').numpy()
     z_via_goom = (goom.exp(log_x)[None, :] + goom.exp(log_y)[:, None]).to('cpu').numpy()
     fig = plot_two_arg_errors(x, y, z, z_via_goom, z_via_float, r'Scalar Addition, $z = x + y$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_scalar_addition.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_scalar_addition')
 
     print(f'Scalar product, {goom_title} vs {float_title}...')
     z = x[None, :] * y[:, None]
     z_via_float = (float_x[None, :] * float_y[:, None]).to('cpu').numpy()
     z_via_goom = goom.exp(log_x[None, :] + log_y[:, None]).to('cpu').numpy()
     fig = plot_two_arg_errors(x, y, z, z_via_goom, z_via_float, r'Scalar Product, $z = x y$')
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_scalar_product.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_scalar_product')
 
 
     # Measure errors on matrix products:
@@ -265,20 +286,19 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
         + f'where $X, Y$ are {d}×{d} Matrices with Elements Sampled from ' \
         + r'$\mathcal{N}(0, 1)$'
     fig = plot_matmul_errors(z, z_via_goom, z_via_float, _matmul_desc)
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_matrix_product.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_errors_on_matrix_product')
 
 
     # Measure execution times on one- and two-argument functions:
     print(f'\n### Execution times on one- and two-argument functions, {goom_title} vs {float_title} ###')
 
-    float_x = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)
-    float_y = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)
+    float_x = torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE)
+    float_y = torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE)
 
     log_x = goom.log(float_x)
     log_y = goom.log(float_y)
 
-    # Helper one-argument functions:
+    # Helper functions:
     def _log_reciprocal_exp_func(log_x):
         log_x.real *= -1  # in-place
         return log_x
@@ -292,18 +312,21 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
         return log_x
 
     def _log_add_exp(log_x, log_y):
-        return goom.log(goom.exp(log_x) + goom.exp(log_y))
+        return goom.log(goom.exp(log_x) + goom.exp(log_y))  # no need to log-scale over specified values
+
+    func_metatada = [
+        # n args, func desc,            float func,                                   goom func,
+        [ 1,     'Reciprocals',         lambda float_x: 1.0 / float_x,                _log_reciprocal_exp_func,           ],
+        [ 1,     'Square Roots',        lambda float_x: torch.sqrt(float_x),          _log_square_root_exp_func,          ],
+        [ 1,     'Squares',             lambda float_x: float_x ** 2,                 _log_square_exp_func,               ],
+        [ 1,     'Natural Logarithms',  lambda float_x: torch.log(float_x),           lambda log_x: log_x,                ],  # gooms already are natural logs
+        [ 1,     'Exponentials',        lambda float_x: torch.exp(float_x),           lambda log_x: torch.exp(log_x),     ],  # equiv to log(exp(exp())), complex
+        [ 2,     'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   _log_add_exp,                       ],
+        [ 2,     'Scalar Product',      lambda float_x, float_y: float_x * float_y,   lambda log_x, log_y: log_x + log_y, ],
+    ]
 
     times = []
-    for n_args, func_desc, float_func, goom_func in [
-        [1,  'Reciprocals',         lambda float_x: 1.0 / float_x,                _log_reciprocal_exp_func,           ],
-        [1,  'Square Roots',        lambda float_x: torch.sqrt(float_x),          _log_square_root_exp_func,          ],
-        [1,  'Squares',             lambda float_x: float_x ** 2,                 _log_square_exp_func,               ],
-        [1,  'Natural Logarithms',  lambda float_x: torch.log(float_x),           lambda log_x: log_x,                ],  # gooms already are natural logs
-        [1,  'Exponentials',        lambda float_x: torch.exp(float_x),           lambda log_x: torch.exp(log_x),     ],  # equiv to log(exp(exp())), complex
-        [2,  'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   _log_add_exp,                       ],
-        [2,  'Scalar Product',      lambda float_x, float_y: float_x * float_y,   lambda log_x, log_y: log_x + log_y, ],
-    ]:
+    for n_args, func_desc, float_func, goom_func in func_metatada:
         print(f'{func_desc.capitalize()} ({n_args} arg/s), {N_RUNS_FOR_TIME_BENCHMARKS} runs, {goom_title} vs {float_title}...')
 
         goom_mean_time = torch.utils.benchmark.Timer(
@@ -321,10 +344,55 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
             'relative_time': goom_mean_time / float_mean_time,
         })
 
-
     fig = plot_execution_times(times, dtype)
-    fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_execution_times.png', dpi=FIG_DPI)
-    plt.close(fig)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_execution_times')
+
+
+    # Measure memory use of one- and two-argument functions:
+    print(f'\n### Memory use of one- and two-argument functions, {goom_title} vs {float_title} ###')
+
+    del float_x, float_y, log_x, log_y
+    peak_allocs = []
+    for n_args, func_desc, float_func, goom_func in func_metatada:
+        print(f'{func_desc.capitalize()} ({n_args} arg/s), {goom_title} vs {float_title}...')
+
+        torch.cuda.empty_cache()
+        torch.cuda.memory.reset_peak_memory_stats(device=DEVICE)
+        match n_args:
+            case 1:
+                log_x = goom.log(torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE))
+                log_y = goom_func(log_x)
+                goom_peak_alloc = torch.cuda.memory.max_memory_allocated(device=DEVICE)
+                del log_x, log_y
+            case 2:
+                log_x = goom.log(torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE))
+                log_y = goom.log(torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE))
+                log_z = goom_func(log_x, log_y)
+                goom_peak_alloc = torch.cuda.memory.max_memory_allocated(device=DEVICE)
+                del log_x, log_y
+
+        torch.cuda.empty_cache()
+        torch.cuda.memory.reset_peak_memory_stats(device=DEVICE)
+        match n_args:
+            case 1:
+                float_x = torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE)
+                float_y = float_func(float_x)
+                float_peak_alloc = torch.cuda.memory.max_memory_allocated(device=DEVICE)
+                del float_x, float_y
+            case 2:
+                float_x = torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE)
+                float_y = torch.rand(N_SAMPLES_FOR_TIME_AND_MEM_BENCHMARKS, dtype=dtype, device=DEVICE)
+                float_z = float_func(float_x, float_y)
+                float_peak_alloc = torch.cuda.memory.max_memory_allocated(device=DEVICE)
+                del float_x, float_y, float_z
+
+        peak_allocs.append({
+            'func_desc': func_desc,
+            'relative_peak_alloc': goom_peak_alloc / float_peak_alloc,
+        })
+
+    fig = plot_peak_memory_allocs(peak_allocs, dtype)
+    save_and_close_fig(fig, fig_desc=f'{goom_camel}_vs_{float_camel}_peak_memory_allocated')
 
 
 print(f'\nFinished. All figures have been saved as files named "{FIG_FILENAME_PREFIX}*.png."')
