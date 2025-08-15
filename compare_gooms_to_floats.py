@@ -155,10 +155,12 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     goom_camel, float_camel = (s.lower().replace(' ', '_') for s in [goom_title, float_title])
 
     print(f'\n### {goom_title} vs {float_title} ###')
-    goom.config.float_dtype = dtype  # set dtype of GOOM real and imag components
+
+    # Set dtype for GOOM real and imag components:
+    goom.config.float_dtype = dtype
 
 
-    # Errors on one-argument functions:
+    # Measure errors on one-argument functions:
     print(f'\n### Errors on one-argument functions, {goom_title} vs {float_title} ###')
 
     p = np.round(np.abs(np.log10(torch.finfo(dtype).resolution)))                  # min/max power of 10 to test
@@ -206,7 +208,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_exponentials.png', dpi=FIG_DPI)
 
 
-    # Errors on two-argument functions:
+    # Measure errors on two-argument functions:
     print(f'\n### Errors on two-argument functions, {goom_title} vs {float_title} ###')
 
     p = np.round(np.abs(np.log10(torch.finfo(dtype).resolution)))                  # min/max power of 10 to test
@@ -233,7 +235,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_scalar_product.png', dpi=FIG_DPI)
 
 
-    # Errors on matrix products:
+    # Measure errors on matrix products:
     print(f'\n### Errors on a matrix product, {goom_title} vs {float_title} ###')
 
     d = N_DIMS_FOR_MATMUL_ERROR
@@ -259,16 +261,16 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_matrix_product.png', dpi=FIG_DPI)
 
 
-    # Execution times on one-argument functions:
+    # Measure execution times on one- and two-argument functions:
     print(f'\n### Execution times on one- and two-argument functions, {goom_title} vs {float_title} ###')
 
-    float_x = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)  # torch.float32   OR torch.float64
-    float_y = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)  # torch.float32   OR torch.float64
+    float_x = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)
+    float_y = torch.rand(N_SAMPLES_FOR_TIME_BENCHMARKS, dtype=dtype, device=DEVICE)
 
-    log_x = goom.log(float_x)                                                        # torch.complex64 OR torch.complex128
-    log_y = goom.log(float_y)                                                        # torch.complex64 OR torch.complex128
+    log_x = goom.log(float_x)
+    log_y = goom.log(float_y)
 
-    # Helper one-argument functions:
+    # Helper one-argument in-place functions:
     def _log_reciprocal_exp_func(log_x):
         log_x.real *= -1
         return log_x
@@ -281,21 +283,15 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
         log_x *= 2
         return log_x
 
-    def _log_exp_func(log_x):
-        return log_x
-
-    def _log_exp_exp_func(log_x):
-        return goom.exp(log_x)
-
     times = []
     for n_args, func_desc, float_func, goom_func in [
-        [1,  'Reciprocals',         lambda float_x: 1.0 / float_x,                _log_reciprocal_exp_func],
-        [1,  'Square Roots',        lambda float_x: torch.sqrt(float_x),          _log_square_root_exp_func],
-        [1,  'Squares',             lambda float_x: float_x ** 2,                 _log_square_exp_func],
-        [1,  'Natural Logarithms',  lambda float_x: torch.log(float_x),           _log_exp_func],
-        [1,  'Exponentials',        lambda float_x: torch.exp(float_x),           _log_exp_exp_func],
-        [2,  'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   goom.log_add_exp],
-        [2,  'Scalar Product',      lambda float_x, float_y: float_x * float_y,   lambda log_x, log_y: log_x + log_y],
+        [1,  'Reciprocals',         lambda float_x: 1.0 / float_x,                _log_reciprocal_exp_func,           ],
+        [1,  'Square Roots',        lambda float_x: torch.sqrt(float_x),          _log_square_root_exp_func,          ],
+        [1,  'Squares',             lambda float_x: float_x ** 2,                 _log_square_exp_func,               ],
+        [1,  'Natural Logarithms',  lambda float_x: torch.log(float_x),           lambda log_x: log_x,                ],  # gooms already are natural logs
+        [1,  'Exponentials',        lambda float_x: torch.exp(float_x),           goom.exp,                           ],  # equiv to log(exp(exp()))
+        [2,  'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   goom.log_add_exp,                   ],
+        [2,  'Scalar Product',      lambda float_x, float_y: float_x * float_y,   lambda log_x, log_y: log_x + log_y, ],
     ]:
         print(f'{func_desc.capitalize()} ({n_args} arg/s), {N_RUNS_FOR_TIME_BENCHMARKS} runs, {goom_title} vs {float_title}...')
 
