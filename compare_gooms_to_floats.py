@@ -174,6 +174,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     y_via_goom = goom.exp(torch.complex(real=-log_x.real, imag=log_x.imag)).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Reciprocals, $y = 1 / x$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_reciprocals.png', dpi=FIG_DPI)
+    plt.close(fig)
 
     print(f'Square roots, {goom_title} vs {float_title}...')
     y = np.sqrt(x)
@@ -181,6 +182,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     y_via_goom = goom.exp(log_x * 0.5).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Square Roots, $y = \sqrt{x}$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_square_roots.png', dpi=FIG_DPI)
+    plt.close(fig)
 
     print(f'Squares, {goom_title} vs {float_title}...')
     y = x ** 2
@@ -188,6 +190,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     y_via_goom = goom.exp(log_x * 2).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Squares, $y = x^2$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_squares.png', dpi=FIG_DPI)
+    plt.close(fig)
 
     print(f'Natural logarithms, {goom_title} vs {float_title}...')
     y = np.log(x)
@@ -195,6 +198,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     y_via_goom = log_x.real.to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Natural Logarithms, $y = \log x$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_natural_logarithms.png', dpi=FIG_DPI)
+    plt.close(fig)
 
     print(f'Exponentials, {goom_title} vs {float_title}...')
     # Use smaller magnitudes to test exp():
@@ -206,6 +210,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     y_via_goom = torch.exp(goom.exp(log_x)).to('cpu').numpy()
     fig = plot_one_arg_errors(x, y, y_via_goom, y_via_float, r'Exponentials, $y = e^x$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_exponentials.png', dpi=FIG_DPI)
+    plt.close(fig)
 
 
     # Measure errors on two-argument functions:
@@ -226,6 +231,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     z_via_goom = (goom.exp(log_x)[None, :] + goom.exp(log_y)[:, None]).to('cpu').numpy()
     fig = plot_two_arg_errors(x, y, z, z_via_goom, z_via_float, r'Scalar Addition, $z = x + y$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_scalar_addition.png', dpi=FIG_DPI)
+    plt.close(fig)
 
     print(f'Scalar product, {goom_title} vs {float_title}...')
     z = x[None, :] * y[:, None]
@@ -233,6 +239,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     z_via_goom = goom.exp(log_x[None, :] + log_y[:, None]).to('cpu').numpy()
     fig = plot_two_arg_errors(x, y, z, z_via_goom, z_via_float, r'Scalar Product, $z = x y$')
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_scalar_product.png', dpi=FIG_DPI)
+    plt.close(fig)
 
 
     # Measure errors on matrix products:
@@ -259,6 +266,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
         + r'$\mathcal{N}(0, 1)$'
     fig = plot_matmul_errors(z, z_via_goom, z_via_float, _matmul_desc)
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_errors_on_matrix_product.png', dpi=FIG_DPI)
+    plt.close(fig)
 
 
     # Measure execution times on one- and two-argument functions:
@@ -270,18 +278,21 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
     log_x = goom.log(float_x)
     log_y = goom.log(float_y)
 
-    # Helper one-argument in-place functions:
+    # Helper one-argument functions:
     def _log_reciprocal_exp_func(log_x):
-        log_x.real *= -1
+        log_x.real *= -1  # in-place
         return log_x
 
     def _log_square_root_exp_func(log_x):
-        log_x *= 0.5
+        log_x *= 0.5  # in-place
         return log_x
 
     def _log_square_exp_func(log_x):
-        log_x *= 2
+        log_x *= 2  # in-place
         return log_x
+
+    def _log_add_exp(log_x, log_y):
+        return goom.log(goom.exp(log_x) + goom.exp(log_y))
 
     times = []
     for n_args, func_desc, float_func, goom_func in [
@@ -289,8 +300,8 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
         [1,  'Square Roots',        lambda float_x: torch.sqrt(float_x),          _log_square_root_exp_func,          ],
         [1,  'Squares',             lambda float_x: float_x ** 2,                 _log_square_exp_func,               ],
         [1,  'Natural Logarithms',  lambda float_x: torch.log(float_x),           lambda log_x: log_x,                ],  # gooms already are natural logs
-        [1,  'Exponentials',        lambda float_x: torch.exp(float_x),           goom.exp,                           ],  # equiv to log(exp(exp()))
-        [2,  'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   goom.log_add_exp,                   ],
+        [1,  'Exponentials',        lambda float_x: torch.exp(float_x),           lambda log_x: torch.exp(log_x),     ],  # equiv to log(exp(exp())), complex
+        [2,  'Scalar Addition',     lambda float_x, float_y: float_x + float_y,   _log_add_exp,                       ],
         [2,  'Scalar Product',      lambda float_x, float_y: float_x * float_y,   lambda log_x, log_y: log_x + log_y, ],
     ]:
         print(f'{func_desc.capitalize()} ({n_args} arg/s), {N_RUNS_FOR_TIME_BENCHMARKS} runs, {goom_title} vs {float_title}...')
@@ -313,6 +324,7 @@ for dtype in TORCH_FLOAT_DTYPES_TO_TEST:
 
     fig = plot_execution_times(times, dtype)
     fig.savefig(f'{FIG_FILENAME_PREFIX}_{goom_camel}_vs_{float_camel}_execution_times.png', dpi=FIG_DPI)
+    plt.close(fig)
 
 
 print(f'\nFinished. All figures have been saved as files named "{FIG_FILENAME_PREFIX}*.png."')
