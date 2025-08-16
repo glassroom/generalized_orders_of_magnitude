@@ -11,9 +11,6 @@ import matplotlib.pyplot as plt
 
 import generalized_orders_of_magnitude as goom
 
-plt.rcParams.update({'font.size': 8})
-np.seterr(all='ignore')  # only for prettier command-line output; OK to remove
-
 
 # Global constants:
 
@@ -28,7 +25,15 @@ N_DIMS_FOR_MATMUL_ERROR = 1024                          # will measure error vs 
 
 FIG_SIZE = (7, 3.5)                   # size of all figures in inches
 FIG_DPI = 300                         # dots per inch of all figures, when saved as PNGs
+FIG_FONTSIZE = 8                      # reference font size for all images
 FIG_FILENAME_PREFIX = 'appendix_fig'  # all PNG files will have names starting with this prefix
+
+
+# Global configuration:
+
+plt.rcParams.update({'font.size': FIG_FONTSIZE, })
+np.seterr(all='ignore')  # only for prettier command-line output; OK to remove
+
 
 
 # Helper functions:
@@ -72,6 +77,7 @@ def plot_one_arg_errors(x, y, y_via_goom, y_via_float, func_desc):
 
     fig.suptitle(f'Magnitude of Error versus Float128 for {func_desc}')
     axes[0].set(ylabel=r'$\log_{10} \left| y - \hat{y} \right|$')
+    fig.text(0.0, 0.0, '$y:$ Float128\n$\\hat{y}:$ Tested Value', fontsize=FIG_FONTSIZE * 5/8, ha="left", va='bottom')
     return fig
 
 
@@ -97,6 +103,7 @@ def plot_two_arg_errors(x, y, z, z_via_goom, z_via_float, func_desc):
 
     fig.colorbar(_colorable, shrink=0.7, ax=axes.ravel().tolist(), label=r'$\log_{10} \left| z - \hat{z} \right| $')   
     fig.suptitle(f'Magnitude of Error versus Float128 for {func_desc}')
+    fig.text(0.9, 0.0, '$z:$ Float128\n$\\hat{z}:$ Tested Value', fontsize=FIG_FONTSIZE * 5/8, ha="left", va='bottom')
     return fig
 
 
@@ -126,6 +133,7 @@ def plot_matmul_errors(z, z_via_goom, z_via_float, matmul_desc):
     fig.suptitle(f'Histogram of Normalized Errors versus Float128 for {matmul_desc}')
     lim = 10 ** np.round(np.log10(np.abs(normalized_errors_via_goom).max()))
     axes[0].set(yticks=[lim * r for r in (-1, -0.5, 0, 0.5, 1)], ylim=(-lim, lim))
+    fig.text(0.0, 0.0, '$Z:$ Float128\n$\\hat{Z}:$ Tested Value', fontsize=FIG_FONTSIZE * 5/8, ha="left", va='bottom')
     return fig
 
 
@@ -154,7 +162,7 @@ def plot_peak_memory_allocs(peak_allocs, dtype):
     fig, axis = plt.subplots(figsize=FIG_SIZE, layout='constrained')
     df = pd.DataFrame(peak_allocs)
     df.plot.barh(ax=axis, x='func_desc', y='relative_peak_alloc', legend=False, alpha=0.7)
-    axis.set(xlabel=f'Peak Memory Allocated, {goom_title} as a Multiple of {float_title}\n(Including Creation of Input and Output Tensors, on an Nvidia GPU)')
+    axis.set(xlabel=f'Peak Memory Allocated, {goom_title} as a Multiple of {float_title}\n(Nvidia GPU, Including Creation of Input, Interim, and Output Tensors)')
     axis.set(ylabel='')
     axis.invert_yaxis()
     axis.grid(axis='x')
