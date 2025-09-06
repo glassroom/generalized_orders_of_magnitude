@@ -43,7 +43,7 @@ Import the library with:
 import generalized_orders_of_magnitude as goom
 ```
 
-### Mapping Real Tensors to GOOMs and Back
+### Mapping Real Tensors to Complex-Typed GOOMs and Back
 
 ```python
 import torch
@@ -64,9 +64,9 @@ print('log_x:\n{}\n'.format(log_x))
 print('exp(log_x):\n{}\n'.format(goom.exp(log_x)))
 ```
 
-### Matrix Multiplication over GOOMs
+### Matrix Multiplication over Complex-Typed GOOMs
 
-The following snippet of code executes the same matrix multiplication over real numbers and over GOOMs:
+The following snippet of code executes the same matrix multiplication over real numbers and over complex-typed GOOMs:
 
 ```python
 import torch
@@ -86,7 +86,7 @@ log_z = goom.log_matmul_exp(log_x, log_y)
 print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 ```
 
-### Chains of Matrix Products over GOOMs 
+### Chains of Matrix Products over Complex-Typed GOOMs 
 
 Note: To be able to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/).
 
@@ -112,7 +112,7 @@ print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 
 ### Other Functions over GOOMs:
 
-We have implemented a variety of functions over GOOMs. All function are defined in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, run the following on a Python command line:
+We have implemented a variety of functions over complex-typed GOOMs. All function are defined in [generalized_orders_of_magnitude.py](generalized_orders_of_magnitude/generalized_orders_of_magnitude.py). To see a list of them, run the following on a Python command line:
 
 ```python
 import generalized_orders_of_magnitude as goom
@@ -145,9 +145,9 @@ print(goom.config)
 
 ## Replicating Published Results
 
-In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that maintain long-range dependencies without numerical degradation, allowing recurrent state elements to fluctuate freely over time steps:
+In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products _far_ beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel _orders-of-magnitude faster than with previous methods_, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that captures long-range dependencies over _non-diagonal recurrent states, computed in parallel via a prefix scan, without requiring any form of stabilization_:
 
-### Chains of Matrix Products that Compound Magnitudes beyond Float Limits
+### Chains of Matrix Products that Compound Magnitudes Far Beyond Float Limits
 
 The code below will attempt to compute chains of up to 1M products of real matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: The code below will take a LONG time to execute, because all product chains finish successfully with GOOMs.
 
@@ -196,16 +196,16 @@ torch.save(longest_chains, 'longest_chains.pt')  # load with torch.load('longest
 print(*longest_chains, sep='\n')
 ```
 
-### Parallel Estimation of the Spectrum of Lyapunov Exponents over GOOMs
+### Parallel Estimation of the Spectrum of Lyapunov Exponents
 
 The code for estimating spectra of Lyapunov exponents in parallel, via a prefix scan over GOOMs, incorporating our selective-resetting method, is at:
 
 [https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents)
 
 
-### Deep RNN Modeling Sequences with Non-Diagonal SSMs over GOOMs
+### Deep RNN Modeling Sequences with Non-Diagonal SSMs without Requiring Stabilization
 
-The code implementing deep recurrent neural networks that capture long-range dependencies over GOOMs, allowing recurrent state elements to fluctuate freely over time steps, is at:
+The code implementing deep recurrent neural networks that capture long-range dependencies via non-diagonal recurrences over GOOMs, without requiring any form of stabilization, is at:
 
 [https://github.com/glassroom/goom_ssm_rnn](https://github.com/glassroom/goom_ssm_rnn)
 
@@ -277,7 +277,7 @@ For every comparison, the script will generate a plot and save it to disk as a p
 
 ## Selective Resetting
 
-In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over real numbers instead of GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
+In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over floats instead of complex-typed GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
 
 
 ## Citing
@@ -299,4 +299,3 @@ TODO: Update citation.
 The work here originated with casual conversations over email between us, the authors, in which we wondered if it might be possible to find a succinct expression for computing non-diagonal linear recurrences in parallel, by mapping them to the complex plane. Our casual conversations gradually evolved into the development of generalized orders of magnitude, along with an algorithm for estimating Lyapunov exponents in parallel, and a novel method for selectively resetting interim states in a parallel prefix scan.
 
 We hope others find our work and our code useful.
-
