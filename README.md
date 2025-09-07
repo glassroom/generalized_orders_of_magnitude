@@ -15,14 +15,16 @@ goom.config.float_dtype = torch.float32      # dtype of real and imaginary compo
 initial_state = torch.eye(1024, device=DEVICE)
 updates = torch.randn(256, 1024, 1024, device=DEVICE)
 
+# Chain of matrix products over float tensors:
 state = initial_state.clone()
 for update in updates:
     state = torch.matmul(state, update)
 print('Computes over float tensors?', state.isfinite().all().item())  # fails!
 
+# Same chain over complex-typed GOOMs:
 log_state = goom.log(initial_state)
-for update in updates:
-    log_state = goom.log_matmul_exp(log_state, goom.log(update))
+for log_update in goom.log(updates):
+    log_state = goom.log_matmul_exp(log_state, log_update)
 print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
 ```
 
