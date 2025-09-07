@@ -210,7 +210,7 @@ The code for estimating spectra of Lyapunov exponents in parallel, via a prefix 
 [https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents)
 
 
-### Deep RNNs Applying Non-Diagonal SSMs that Do Not Require Stabilization
+### Deep RNNs that Apply Non-Diagonal SSMs in Parallel without Stabilization
 
 The code implementing deep recurrent neural networks that capture long-range dependencies via non-diagonal recurrences over GOOMs, without requiring any form of stabilization, is at:
 
