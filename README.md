@@ -130,7 +130,7 @@ print('List of implemented functions:', *[
 ], sep='\n')
 ```
 
-To see the docstring and source code of any implemented function, type its name followed by "??" and <Enter> on a Python command line, as usual.
+To see the docstring and source code of any implemented function, type its name followed by "??" and `Enter` on a Python command line, as usual.
 
 
 ## Configuration Options
@@ -210,7 +210,7 @@ The code for estimating spectra of Lyapunov exponents in parallel, via a prefix 
 [https://github.com/glassroom/parallel_lyapunov_exponents](https://github.com/glassroom/parallel_lyapunov_exponents)
 
 
-### Deep RNN Modeling Sequences with Non-Diagonal SSMs without Requiring Stabilization
+### Deep RNNs Applying Non-Diagonal SSMs that Do Not Require Stabilization
 
 The code implementing deep recurrent neural networks that capture long-range dependencies via non-diagonal recurrences over GOOMs, without requiring any form of stabilization, is at:
 
