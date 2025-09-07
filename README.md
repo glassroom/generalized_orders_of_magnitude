@@ -6,19 +6,24 @@ Reference implementation of generalized orders of magnitude (GOOMs), for PyTorch
 import torch
 import generalized_orders_of_magnitude as goom
 
-DEVICE = 'cuda'                                                    # change as needed
-goom.config.float_dtype = torch.float64                            # real and imag dtype
-mm, lmme = (torch.matmul, goom.log_matmul_exp)                     # for legibility
+DEVICE = 'cuda'  # change as needed
 
-x = torch.randn(3, 3, dtype=torch.float64, device=DEVICE) * 1e128  # large magnitudes
-y = torch.linalg.inv(x)                                            # inverts mult by x
-z = mm(mm(mm(mm(x, x), x), y), y)                                  # z should equal x
-print('Computes over float64?', torch.allclose(x, z))              # computation fails!
+goom.config.keep_logs_finite = True          # log(0) will return a finite floor
+goom.config.cast_all_logs_to_complex = True  # all GOOMs will be cast to a complex dtype
+goom.config.float_dtype = torch.float32      # dtype of real and imaginary components
 
-log_x = goom.log(x)                                                # map x to a GOOM
-log_y = goom.log(y)                                                # map y to a GOOM
-log_z = lmme(lmme(lmme(lmme(log_x, log_x), log_x), log_y), log_y)  # z should equal x
-print('Computes over GOOMs?', torch.allclose(x, goom.exp(log_z)))  # computation succeeds!
+initial_state = torch.eye(1024, device=DEVICE)
+updates = torch.randn(256, 1024, 1024, device=DEVICE)
+
+state = initial_state.clone()
+for update in updates:
+    state = torch.matmul(state, update)
+print('Computes over float tensors?', state.isfinite().all().item())  # fails!
+
+log_state = goom.log(initial_state)
+for update in updates:
+    log_state = goom.log_matmul_exp(log_state, goom.log(update))
+print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
 ```
 
 For important limitations of this initial implementation, both in terms of precision and performance, see [here](#limitations). For instructions to replicate published results, see [here](#replicating-published-results). For an implementation of selective resetting, see [here](#selective-resetting).
