@@ -121,16 +121,22 @@ def exp(log_x):
 
 # Functions for computing log-matmul-exp:
 
-def log_matmul_exp(log_x1, log_x2):
+def log_matmul_exp(log_x1, log_x2, min_c=0):
     """
-    Broadcastable log(exp(log_x1) @ exp(log_x2)).
-    Input shapes: [..., d1, d2], [..., d2, d3].
-    Output shape: [..., d1, d3].
+    Broadcastable log(exp(log_x1) @ exp(log_x2)), implemented by calling
+    PyTorch's existing implementation of matmul over scaled float tensors.
+    Inputs:
+        log_x1: log-tensor of shape [..., d1, d2].
+        log_x2: log-tensor of shape [..., d2, d3].
+        min_c: (optional) float, minimum log-scaling constant. Default: 0.
+    Outputs:
+        log_y: log-tensor of shape [..., d1, d3].
     """
-    c1 = log_x1.real.detach().max(dim=-1, keepdim=True).values.clamp(min=0)
-    c2 = log_x2.real.detach().max(dim=-2, keepdim=True).values.clamp(min=0)
-    x = torch.matmul(exp(log_x1 - c1), exp(log_x2 - c2))
-    return log(x) + c1 + c2
+    c1 = log_x1.real.detach().max(dim=-1, keepdim=True).values.clamp(min=min_c)
+    c2 = log_x2.real.detach().max(dim=-2, keepdim=True).values.clamp(min=min_c)
+    scaled_y = torch.matmul(exp(log_x1 - c1), exp(log_x2 - c2))
+    log_y = log(scaled_y) + c1 + c2
+    return log_y
 
 def alternate_log_matmul_exp(log_x1, log_x2, chunk_size=32):
     """
