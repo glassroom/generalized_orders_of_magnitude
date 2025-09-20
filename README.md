@@ -150,7 +150,7 @@ print(goom.config)
 
 ## Replicating Published Results
 
-In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products _far_ beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel _orders-of-magnitude faster than with previous methods_, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that captures long-range dependencies over _non-diagonal recurrent states, computed in parallel via a prefix scan, without requiring any form of stabilization_:
+In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products _far_ beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel _orders-of-magnitude faster than with previous methods_, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that capture long-range dependencies over _non-diagonal recurrent states, computed in parallel via a prefix scan, without requiring any form of stabilization_:
 
 ### Chains of Matrix Products that Compound Magnitudes Far Beyond Float Limits
 
