@@ -215,6 +215,11 @@ The code implementing deep recurrent neural networks that capture long-range dep
 [https://github.com/glassroom/goom_ssm_rnn](https://github.com/glassroom/goom_ssm_rnn)
 
 
+## Selective Resetting
+
+In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over floats instead of complex-typed GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
+
+
 ## Limitations
 
 ### Precision and Performance
@@ -278,11 +283,6 @@ python compare_gooms_to_floats.py
 ```
 
 For every comparison, the script will generate a plot and save it to disk as a png image.
-
-
-## Selective Resetting
-
-In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over floats instead of complex-typed GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
 
 
 ## Citing
