@@ -287,8 +287,6 @@ For every comparison, the script will generate a plot and save it to disk as a p
 
 ## Citing
 
-TODO: Update citation.
-
 ```
 @article{
 heinsen2025generalized,
