@@ -98,7 +98,7 @@ print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 ### Chains of Matrix Products over Complex-Typed GOOMs 
 
 You can apply `goom.log_matmul_exp()` via a parallel scan to compute chains of matrix products. Here is a toy example
-(note: To be able to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/)):
+(note: to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/)):
 
 ```python
 import torch
