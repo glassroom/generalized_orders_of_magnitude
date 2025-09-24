@@ -1,6 +1,6 @@
 # generalized_orders_of_magnitude
 
-Reference implementation of generalized orders of magnitude (GOOMs), for PyTorch, enabling you to operate on real numbers outside the bounds representable by torch.float32 and torch.float64. Toy example:
+Reference implementation of generalized orders of magnitude (GOOMs), for PyTorch, enabling you to operate on real numbers _far_ beyond the limits of conventional floating-point formats. With GOOMs, you no longer need to apply stabilization, clipping, or other cumbersome techniques to keep magnitudes within those limits. Toy example:
 
 ```python
 import torch
@@ -50,6 +50,8 @@ import generalized_orders_of_magnitude as goom
 
 ### Mapping Real Tensors to Complex-Typed GOOMs and Back
 
+`goom.log()` maps real tensors to complex-typed GOOMs, and `goom.exp()` maps them back to real tensors:
+
 ```python
 import torch
 import generalized_orders_of_magnitude as goom
@@ -71,7 +73,7 @@ print('exp(log_x):\n{}\n'.format(goom.exp(log_x)))
 
 ### Matrix Multiplication over Complex-Typed GOOMs
 
-The following snippet of code executes the same matrix multiplication over real numbers and over complex-typed GOOMs:
+`goom.log_matmul_exp()` computes the equivalent of a real-valued matrix multiplication over complex-typed GOOMs. For example, the following snippet of code executes the same matrix multiplication over real numbers and over complex-typed GOOMs:
 
 ```python
 import torch
@@ -93,7 +95,8 @@ print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 
 ### Chains of Matrix Products over Complex-Typed GOOMs 
 
-Note: To be able to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/).
+You can apply `goom.log_matmul_exp()` via a parallel scan to compute chains of matrix products. Here is a toy example
+(note: To be able to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/)):
 
 ```python
 import torch
