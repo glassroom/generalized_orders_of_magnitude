@@ -1,6 +1,6 @@
 # generalized_orders_of_magnitude
 
-Reference implementation of generalized orders of magnitude (GOOMs), for PyTorch, enabling you to operate on real numbers _far_ beyond the limits of conventional floating-point formats. You no longer need to apply stabilization, clipping, and other cumbersome techniques to keep magnitudes within those limits.
+Reference implementation of [generalized orders of magnitude](https://openreview.net/pdf?id=SUuzb0SOGu) (GOOMs), for PyTorch, enabling you to operate on real numbers _far_ beyond the limits of conventional floating-point formats. You no longer need to apply stabilization, clipping, and other cumbersome techniques to keep magnitudes within those limits.
 
 Toy example:
 
