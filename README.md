@@ -30,9 +30,7 @@ for log_update in goom.log(updates):
 print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
 ```
 
-GOOMs generalize the concept of "order of magnitude" to incorporate the subset of the complex plane that exponentiates to the real number line. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate, enabling you to operate over a _far_ greater dynamic range of real numbers than previously possible.
-
-Our implementation of GOOMs is meant to be _complementary_ to conventional numerical formats, _not a replacement_ for them. We recommend using it only when their dynamic range falls short. The following table compares the dynamic range of Complex64 and Complex128 GOOMs to that of Float32 and Float64:
+GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate. The following table compares the dynamic range of our implementation's Complex64 and Complex128 GOOMs to that of Float32 and Float64:
 
 | Representation  | Bits | Smallest Normal Magnitude | Largest Normal Magnitude |
 | --------------- | ---- | ------------------------- | ------------------------ |
@@ -41,6 +39,7 @@ Our implementation of GOOMs is meant to be _complementary_ to conventional numer
 | Complex64 GOOM  | 64   | exp(-10^38)               | exp(10^38)               |
 | Complex128 GOOM | 128  | exp(-10^308)              | exp(10^308)              |
 
+Our implementation of GOOMs is meant to be _complementary_ to conventional numerical formats, _not a replacement_ for them. We recommend using it only when their dynamic range falls short.
 
 ## Installing
 
