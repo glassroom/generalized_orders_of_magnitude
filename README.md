@@ -166,7 +166,9 @@ print(goom.config)
 
 ## Using as a Component of PyTorch Models
 
-You can use all functions provided by our library as components of PyTorch models, trainable via SGD with conventional techniques, without hassle. All functions are parallelized, broadcastable over an arbitrary numbers of preceding indices, and compatible with backpropagation of gradients. We have taken special care to handle the singularity at the logarithm of zero gracefully, for use in a broad range of applications, including deep learning.
+You can use all functions provided by our library as components of PyTorch models, trainable via stochastic gradient descent (SGD) with conventional tools and techniques, _without hassle_. All functions are parallelized, broadcastable over an arbitrary numbers of preceding indices, and compatible with backpropagation of gradients. We have taken special care to handle the singularity at the logarithm of zero gracefully, for use in a broad range of applications, including deep learning.
+
+It's even possible to implement models that operate entirely over GOOMs, end-to-end, but in most cases we would not recommend it, due to the increased compute and memory cost. Instead, we would normally recommend implementing over GOOMs only those computations for which the dynamic range of Float32 and Float64 proves insufficient. Before mapping GOOMs to floats, via `goom.exp()`, you must scale the GOOMs to values that are representable as floats. For convenience, we provide two functions for scaling GOOMs: `goom.scale()` and `goom.scaled_exp()`. See their respective docstrings for usage.
 
 
 ## Replicating Published Results
