@@ -30,7 +30,7 @@ for log_update in goom.log(updates):
 print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
 ```
 
-GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate, enabling you to operate over a _far_ greater dynamic range of real values than previously possible.
+GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate, enabling you to operate over a _far_ greater dynamic range of real numbers.
 
 
 ## Dynamic Range
