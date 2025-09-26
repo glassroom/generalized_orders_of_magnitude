@@ -312,6 +312,17 @@ python compare_gooms_to_floats.py
 
 For every comparison, the script will generate a plot and save it to disk as a png image.
 
+Note: The comparisons are valid only for this implementation, not for GOOMs in general.
+
+
+## Relationship to Floating-Point Formats
+
+In our paper, we define GOOMs as a set of mathematical objects, and show that floating-point numbers are a special case of GOOMs. Every conventional and extended floating-point format is a GOOM that represents imaginary components with a single bit.
+
+Our implementation is a special case too, but one that represents real and imaginary components with either Float32 or Float64 numbers, which, as we just mentioned, are themselves special cases of GOOMs, in effect forming an "edifice of GOOMs." We have implemented this "edifice of GOOMs" by extending PyTorch's complex data types.
+
+Defining and naming GOOMs enables us to talk and reason about all possible special cases, including floating-point numbers, in the abstract. From a practical standpoint, GOOMs are complementary to existing numerical formats, providing a mechanism that can leverage them, enabling you to operate over a far greater dynamic range of real numbers than previously possible.
+
 
 ## Citing
 
