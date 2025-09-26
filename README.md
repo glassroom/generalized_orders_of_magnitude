@@ -317,7 +317,7 @@ Note: The comparisons are valid only for this implementation, not for GOOMs in g
 
 ## Relationship to Floating-Point Formats
 
-In our paper, we define GOOMs as a set of mathematical objects, and show that floating-point numbers are a special case of GOOMs. Every conventional and extended floating-point format is a GOOM that represents imaginary components with a single bit.
+In our paper, we define GOOMs as a set of mathematical objects, and show that floating-point numbers are a special case of GOOMs. All conventional and extended floating-point formats, including Float32 and Float64, are GOOMs that represent imaginary components with a single bit.
 
 Our implementation is a special case too, but one that represents real and imaginary components with either Float32 or Float64 numbers, which, as we just mentioned, are themselves special cases of GOOMs, in effect forming an "edifice of GOOMs." We have implemented this "edifice of GOOMs" by extending PyTorch's complex data types.
 
