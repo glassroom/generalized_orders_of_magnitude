@@ -37,15 +37,14 @@ GOOMs generalize the concept of "order of magnitude" to incorporate complex numb
 
 The following table compares the dynamic range of our implementation's Complex64 and Complex128 GOOMs to that of Float32 and Float64:
 
-| Representation  | Bits | Smallest Normal Magnitude | Largest Normal Magnitude |
-| --------------- | ---- | ------------------------- | ------------------------ |
-| Float32         | 32   | 10^-38 ≈ exp(-10^1.9395)  | 10^38 ≈ exp(10^1.9395)   |
-| Float64         | 64   | 10^-308 ≈ exp(-10^2.8506) | 10^308 ≈ exp(10^2.8506)  |
-| Complex64 GOOM  | 64   | exp(-10^38)               | exp(10^38)               |
-| Complex128 GOOM | 128  | exp(-10^308)              | exp(10^308)              |
+| Representation  | Bits | Smallest Normal Magnitude     | Largest Normal Magnitude    |
+| --------------- | ---- | ----------------------------- | --------------------------- |
+| Float32         | 32   | 10^-38 ≈ exp(-10^1.9395)      | 10^38 ≈ exp(10^1.9395)      |
+| Float64         | 64   | 10^-308 ≈ exp(-10^2.8506)     | 10^308 ≈ exp(10^2.8506)     |
+| Complex64 GOOM  | 64   | 10^(-10^37.6) ≈ exp(-10^38)   | 10^(10^37.6) ≈ exp(10^38)   |
+| Complex128 GOOM | 128  | 10^(-10^307.6) ≈ exp(-10^308) | 10^(10^307.6) ≈ exp(10^308) |
 
 Note: Our implementation of GOOMs is meant to be _complementary_ to conventional numerical formats, _not a replacement_ for them. We recommend using it only when their dynamic range falls short.
-
 
 
 ## Installing
