@@ -188,9 +188,7 @@ This repository provides a Python script that attempts to compute chains of up t
 python replicate_experiment_one_from_paper.py
 ```
 
-The script will create two files: `'longest_chains.pt'`, a PyTorch file containing data for all runs, which you can load from a Python shell or notebook with `torch.load('longest_chains.pt')`, and `'fig_longest_chains.png'`, an image file containing a summary plot.
-
-WARNING: The script will take a LONG time to execute, because all product chains finish successfully with GOOMs.
+The script will create two files: `'longest_chains.pt'`, a PyTorch file containing data for all runs, which you can load from a Python shell or notebook with `torch.load('longest_chains.pt')`, and `'fig_longest_chains.png'`, an image file containing a summary plot. WARNING: The script will take a LONG time to execute, because all product chains finish successfully with GOOMs.
 
 
 ### Parallel Estimation of the Spectrum of Lyapunov Exponents
