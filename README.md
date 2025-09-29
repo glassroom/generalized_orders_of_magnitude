@@ -182,52 +182,16 @@ In our paper, we present the results of three representative experiments: (1) co
 
 ### Chains of Matrix Products that Compound Magnitudes Far Beyond Float Limits
 
-The code below will attempt to compute chains of up to 1M products of real matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs (_i.e._, with torch.float32 real and imaginary components). For every matrix size, for each data type, the code will attempt to compute the entire chain 30 times. WARNING: The code below will take a LONG time to execute, because all product chains finish successfully with GOOMs.
+This repository provides a Python script that attempts to compute chains of up to 1M products of real matrices, each with elements independently sampled from a normal distribution, over torch.float32, torch.float64, and complex64 GOOMs, for matrix sizes ranging from `8 x 8` to `1024 x 1024`, on CUDA devices. For each data type, for each matrix size, the script will attempt to compute the entire chain 30 times. To run the script, clone _and install_ this repository, install `torch`, `numpy`, `pandas`, `matplotlib`, and `tqdm`, and execute from the command line:
 
-```python
-import torch
-import generalized_orders_of_magnitude as goom
-from tqdm import tqdm  # you must install from https://github.com/tqdm/tqdm
-
-goom.config.keep_logs_finite = True
-goom.config.float_dtype = torch.float32
-
-DEVICE = 'cuda'
-n_runs = 30                                    # number of runs per matrix size
-d_list = [8, 16, 32, 64, 128, 256, 512, 1024]  # square matrix sizes
-n_steps = 1_000_000                            # maximum chain length
-
-longest_chains = []
-for dtype in [torch.float32, torch.float64]:
-    for run_number in range(n_runs):
-        for d in d_list:
-            state = torch.randn(d, d, dtype=dtype, device=DEVICE)
-            for t in tqdm(range(n_steps), desc=f'Chain over {dtype}, run {run_number}, matrix size {d}'):
-                update = torch.randn(d, d, dtype=dtype, device=DEVICE)
-                state = torch.matmul(state, update)
-                if not state.isfinite().all().item():
-                    break
-            longest_chains.append({
-                'method': 'MatMul_over_R', 'dtype_name': str(dtype),
-                'run_number': run_number, 'd': d, 'n_completed': t + 1,
-            })
-
-for run_number in range(n_runs):
-    for d in d_list:
-        log_state = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
-        for t in tqdm(range(n_steps), desc=f'Chain over Complex64 GOOMs, run {run_number}, matrix size {d}'):
-            log_update = goom.log(torch.randn(d, d, dtype=torch.float32, device=DEVICE))
-            log_state = goom.log_matmul_exp(log_state, log_update)
-            if not log_state.isfinite().all().item():
-                break
-        longest_chains.append({
-            'method': 'LogMatMulExp_over_GOOMs', 'dtype_name': 'torch.complex64',
-            'run_number': run_number, 'd': d, 'n_completed': t + 1,
-        })
-
-torch.save(longest_chains, 'longest_chains.pt')  # load with torch.load('longest_chains.pt')
-print(*longest_chains, sep='\n')
 ```
+python replicate_experiment_one_from_paper.py
+```
+
+The script will create two files: `'longest_chains.pt'`, a PyTorch file containing data for all runs, which you can load from a Python shell or notebook with `torch.load('longest_chains.pt')`, and `'fig_longest_chains.png'`, an image file containing a summary plot.
+
+WARNING: The script will take a LONG time to execute, because all product chains finish successfully with GOOMs.
+
 
 ### Parallel Estimation of the Spectrum of Lyapunov Exponents
 
@@ -304,7 +268,7 @@ The current implementaton of `goom.log` is incompatible with `torch.vmap`, becau
 
 ## Precision and Performance versus Floating-Point Formats
 
-This repository provides a script for comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute:
+This repository provides a Python script for comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone _and install_ this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute from the command line:
 
 ```
 python compare_gooms_to_floats.py
