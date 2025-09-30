@@ -1,7 +1,7 @@
 # generalized_orders_of_magnitude
 
 Reference implementation of [generalized orders of magnitude](https://openreview.net/pdf?id=SUuzb0SOGu) (GOOMs), for PyTorch, enabling you to operate on real numbers _far_ beyond the limits of conventional floating-point formats. You no longer need to scale, clip, or stabilize values with cumbersome techniques to keep magnitudes within those limits.
-
+z
 Toy example:
 
 ```python
@@ -30,7 +30,7 @@ for log_update in goom.log(updates):
 print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
 ```
 
-GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate, enabling you to operate over a _far_ greater dynamic range of real numbers.
+GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they would exponentiate, enabling effortless scaling and parallelization of high-dynamic-range computations.
 
 
 ## Dynamic Range
