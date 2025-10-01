@@ -32,7 +32,7 @@ print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succ
 
 GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they would exponentiate, enabling _effortless scaling and parallelization of high-dynamic-range computations_.
 
-We provide two implementations, Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of dynamic range on each side, respectively.
+We provide two implementations, Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of normal dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of normal dynamic range on each side, respectively.
 
 Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices, over common representable magnitudes, precision is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation).
 
