@@ -30,21 +30,13 @@ for log_update in goom.log(updates):
 print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
 ```
 
-GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they would exponentiate, enabling effortless scaling and parallelization of high-dynamic-range computations.
+GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they would exponentiate, enabling _effortless scaling and parallelization of high-dynamic-range computations_.
 
+We provide two implementations, Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of dynamic range on each side, respectively.
 
-## Dynamic Range
+Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64, we find that precision is competitive (typically within a small fraction of the least significant decimal point), execution time typically doubles (with some variation), and memory use typically doubles (again, with some variation).
 
-The following table compares the dynamic range of our implementation's Complex64 and Complex128 GOOMs to that of Float32 and Float64:
-
-| Representation  | Bits | Smallest Normal Magnitude      | Largest Normal Magnitude     |
-| --------------- | ---- | ------------------------------ | ---------------------------- |
-| Float32         | 32   | 10^-38                         | 10^38                        |
-| Float64         | 64   | 10^-308                        | 10^308                       |
-| Complex64 GOOM  | 64   | 10^(-10^37.64) ≈ exp(-10^38)   | 10^(10^37.64) ≈ exp(10^38)   |
-| Complex128 GOOM | 128  | 10^(-10^307.64) ≈ exp(-10^308) | 10^(10^307.64) ≈ exp(10^308) |
-
-Note: Our implementation of GOOMs is meant to be _complementary_ to conventional numerical formats, _not a replacement_ for them. We recommend using it only when their dynamic range falls short.
+For a detailed comparison to Float32 and Float64 on CUDA devices, see [here](#comparison-to-float32-and-float64-on-cuda-devices).
 
 
 ## Installing
@@ -210,9 +202,48 @@ The code implementing deep recurrent neural networks that capture long-range dep
 In our paper, we formulate a method for selectively resetting interim states at any step in a linear recurrence, as we compute all states in the linear recurrence in parallel via a prefix scan. We apply this method as a component of our parallel algorithm for estimating the spectrum of Lyapunov exponents, over GOOMs. If you are interested in understanding how our selective-resetting method works, we recommend taking a look at [https://github.com/glassroom/selective_resetting/](https://github.com/glassroom/selective_resetting/), an implementation of selective resetting over floats instead of complex-typed GOOMs. We also recommend reading Appendix C of our paper, which explains the intuition behind selective resetting informally, with step-by-step examples.
 
 
+## Comparison to Float32 and Float64 on CUDA Devices
+
+
+### Dynamic Range compared to Float32 and Float64
+
+| Representation  | Bits | Smallest Normal Magnitude      | Largest Normal Magnitude     |
+| --------------- | ---- | ------------------------------ | ---------------------------- |
+| Float32         | 32   | 10^-38                         | 10^38                        |
+| Float64         | 64   | 10^-308                        | 10^308                       |
+| Complex64 GOOM  | 64   | 10^(-10^37.64) ≈ exp(-10^38)   | 10^(10^37.64) ≈ exp(10^38)   |
+| Complex128 GOOM | 128  | 10^(-10^307.64) ≈ exp(-10^308) | 10^(10^307.64) ≈ exp(10^308) |
+
+Note: Our implementation of GOOMs is meant to be _complementary_ to conventional numerical formats, _not a replacement_ for them. We recommend using it only when their dynamic range falls short.
+
+
+### Precision, Execution Time, and Memory Use compared to Float32 and Float64
+
+Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64, we find that precision is competitive (typically within a fraction of the least significant decimal point), execution time typically doubles (with some variation), and memory use typically doubles (again, with some variation).
+
+This repository provides a Python script for comparing the precision, execution time, and memory use of Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone _and install_ this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute from the command line:
+
+```
+python compare_gooms_to_floats.py
+```
+
+For every comparison, the script will generate a plot and save it to disk as a png image.
+
+Note: The comparisons are valid only for this implementation, not for GOOMs in general.
+
+
+## Relationship to Floating-Point Formats
+
+In our paper, we define GOOMs as a set of mathematical objects, and show that floating-point numbers are a special case of GOOMs. All conventional and extended floating-point formats, including Float32 and Float64, are GOOMs that represent imaginary components with a single bit.
+
+Our implementation is a special case too, but one that represents real and imaginary components with either Float32 or Float64 numbers, which, as we just mentioned, are themselves special cases of GOOMs, in effect forming an "edifice of GOOMs." We have implemented this "edifice of GOOMs" by extending PyTorch's complex data types.
+
+Defining and naming GOOMs enables us to talk and reason about all possible special cases, including floating-point numbers, in the abstract. From a practical standpoint, GOOMs are complementary to existing numerical formats, providing a mechanism that can leverage them, enabling you to operate over a far greater dynamic range of real numbers than previously possible.
+
+
 ## Limitations
 
-### Precision and Performance
+### Limitations of Our Initial Implementation of Log-MatMul-Exp
 
 Our initial implementation of `goom.log_matmul_exp` (LMME) is sub-optimal, both in terms of precision and performance. Ideally, what we want is an implementation of LMME that delegates the bulk of parallel computation to a highly optimized kernel that executes and aggregates results over _tiled sub-tensors of complex dtype_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, currently provide no support for developing _complex-typed kernels_ (as of mid-2025). As we discuss in our paper, we considered implementing LMME so it computes all outer sums in parallel, then applies log-sum-exp, but decided not to do so, because it requires $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. We also considered applying log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs, with a vector-mapping operator like `torch.vmap`, but decided not to do so, because it runs into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over _tiled_ sub-tensors.
 
@@ -262,28 +293,6 @@ Note: For applications that truly require more precision, we provide `goom.alter
 ### Other Limitations
 
 The current implementaton of `goom.log` is incompatible with `torch.vmap`, because the latter cannot operate over flow control code, such as the `if` statement evaluated inside `goom.log` to determine whether to cast all logarithms to complex tensors. The PyTorch team is working on [a solution to the flow-control issue](https://docs.pytorch.org/docs/stable//generated/torch.cond.html), but as of mid-2025 it is still a prototype, not recommended for use in applications. As a workaround, you can edit the code that implements `goom.log` to remove the `if` statement and always return a complex-typed tensor.
-
-
-## Precision and Performance versus Floating-Point Formats
-
-This repository provides a Python script for comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone _and install_ this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute from the command line:
-
-```
-python compare_gooms_to_floats.py
-```
-
-For every comparison, the script will generate a plot and save it to disk as a png image.
-
-Note: The comparisons are valid only for this implementation, not for GOOMs in general.
-
-
-## Relationship to Floating-Point Formats
-
-In our paper, we define GOOMs as a set of mathematical objects, and show that floating-point numbers are a special case of GOOMs. All conventional and extended floating-point formats, including Float32 and Float64, are GOOMs that represent imaginary components with a single bit.
-
-Our implementation is a special case too, but one that represents real and imaginary components with either Float32 or Float64 numbers, which, as we just mentioned, are themselves special cases of GOOMs, in effect forming an "edifice of GOOMs." We have implemented this "edifice of GOOMs" by extending PyTorch's complex data types.
-
-Defining and naming GOOMs enables us to talk and reason about all possible special cases, including floating-point numbers, in the abstract. From a practical standpoint, GOOMs are complementary to existing numerical formats, providing a mechanism that can leverage them, enabling you to operate over a far greater dynamic range of real numbers than previously possible.
 
 
 ## Citing
