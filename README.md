@@ -205,7 +205,7 @@ In our paper, we formulate a method for selectively resetting interim states at 
 ## Comparison to Float32 and Float64 on CUDA Devices
 
 
-### Dynamic Range compared to Float32 and Float64
+### Dynamic Range Compared to Float32 and Float64
 
 | Representation  | Bits | Smallest Normal Magnitude      | Largest Normal Magnitude     |
 | --------------- | ---- | ------------------------------ | ---------------------------- |
@@ -217,7 +217,7 @@ In our paper, we formulate a method for selectively resetting interim states at 
 Note: Our implementation of GOOMs is meant to be _complementary_ to conventional numerical formats, _not a replacement_ for them. We recommend using it only when their dynamic range falls short.
 
 
-### Precision, Execution Time, and Memory Use compared to Float32 and Float64
+### Precision, Execution Time, and Memory Use Compared to Float32 and Float64
 
 Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64, we find that precision is competitive (typically within a fraction of the least significant decimal point), execution time typically doubles (with some variation), and memory use typically doubles (again, with some variation).
 
