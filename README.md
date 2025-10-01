@@ -34,7 +34,7 @@ GOOMs generalize the concept of "order of magnitude" to incorporate complex numb
 
 We provide two implementations, Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of dynamic range on each side, respectively.
 
-Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64, we find that precision is competitive (typically within a small fraction of the least significant decimal point), execution time typically doubles (with some variation), and memory use typically doubles (again, with some variation).
+Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices, over common representable magnitudes, precision is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation).
 
 For a detailed comparison to Float32 and Float64 on CUDA devices, see [here](#comparison-to-float32-and-float64-on-cuda-devices).
 
@@ -219,9 +219,9 @@ Note: Our implementation of GOOMs is meant to be _complementary_ to conventional
 
 ### Precision, Execution Time, and Memory Use Compared to Float32 and Float64
 
-Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64, we find that precision is competitive (typically within a fraction of the least significant decimal point), execution time typically doubles (with some variation), and memory use typically doubles (again, with some variation).
+Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices, over common representable magnitudes, we find that precision is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation).
 
-This repository provides a Python script for comparing the precision, execution time, and memory use of Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone _and install_ this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute from the command line:
+We provide a Python script for comparing the precision, execution time, and memory use of Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices. To run the script, clone _and install_ this repository, install `torch`, `numpy`, `pandas`, and `matplotlib`, and execute from the command line:
 
 ```
 python compare_gooms_to_floats.py
