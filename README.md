@@ -225,9 +225,9 @@ We provide a Python script for comparing the precision, execution time, and memo
 python compare_gooms_to_floats.py
 ```
 
-For every comparison, the script will generate a plot and save it to disk as a png image.
+We find that for both Complex64 GOOMs vs. Float32 and Complex128 GOOMs vs. Float64, precision over common representable magnitudes is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation).
 
-For both Complex64 GOOMs vs. Float32 and Complex128 GOOMs vs. Float64, precision over common representable magnitudes is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation). Note: The comparisons are valid only for this implementation, not for GOOMs in general.
+Note: The comparisons are valid only for this implementation, not for GOOMs in general.
 
 
 ## Relationship to Floating-Point Formats
