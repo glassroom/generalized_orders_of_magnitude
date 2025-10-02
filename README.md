@@ -58,6 +58,7 @@ Import the library with:
 import generalized_orders_of_magnitude as goom
 ```
 
+
 ### Mapping Real Tensors to Complex-Typed GOOMs and Back
 
 `goom.log()` maps real tensors to complex-typed GOOMs, and `goom.exp()` maps them back to real tensors:
@@ -81,6 +82,7 @@ print('log_x:\n{}\n'.format(log_x))
 print('exp(log_x):\n{}\n'.format(goom.exp(log_x)))
 ```
 
+
 ### Matrix Multiplication over Complex-Typed GOOMs
 
 `goom.log_matmul_exp()` computes the equivalent of a real-valued matrix multiplication over complex-typed GOOMs. For example, the following snippet of code executes the same matrix multiplication over real numbers and over complex-typed GOOMs:
@@ -102,6 +104,7 @@ log_y = goom.log(y)
 log_z = goom.log_matmul_exp(log_x, log_y)
 print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 ```
+
 
 ### Chains of Matrix Products over Complex-Typed GOOMs 
 
@@ -127,6 +130,7 @@ log_x = goom.log(x)
 log_y = tps.reduce_scan(log_x, goom.log_matmul_exp, dim=0)
 print('exp(log_y):\n{}\n'.format(goom.exp(log_y)))
 ```
+
 
 ### Other Functions over GOOMs:
 
@@ -171,6 +175,7 @@ It's even possible to implement models that operate entirely over GOOMs, end-to-
 ## Replicating Published Results
 
 In our paper, we present the results of three representative experiments: (1) compounding up to one million real matrix products _far_ beyond standard float limits; (2) estimating spectra of Lyapunov exponents in parallel _orders-of-magnitude faster than with previous methods_, using a novel selective-resetting method to prevent state colinearity; and (3) training deep recurrent neural networks that capture long-range dependencies over _non-diagonal recurrent states, computed in parallel via a prefix scan, without requiring any form of stabilization_:
+
 
 ### Chains of Matrix Products that Compound Magnitudes Far Beyond Float Limits
 
@@ -241,6 +246,7 @@ Defining and naming GOOMs enables us to talk and reason about all possible speci
 
 ## Limitations
 
+
 ### Limitations of Our Initial Implementation of Log-MatMul-Exp
 
 Our initial implementation of `goom.log_matmul_exp` (LMME) is sub-optimal, both in terms of precision and performance. Ideally, what we want is an implementation of LMME that delegates the bulk of parallel computation to a highly optimized kernel that executes and aggregates results over _tiled sub-tensors of complex dtype_. Unfortunately, PyTorch and its ecosystem, including intermediate compilers like Triton, currently provide no support for developing _complex-typed kernels_ (as of mid-2025). As we discuss in our paper, we considered implementing LMME so it computes all outer sums in parallel, then applies log-sum-exp, but decided not to do so, because it requires $\mathcal{O}(ndm)$ space for two matrices of size $n \times d$ and $d \times m$, respectively. We also considered applying log-sum-exp to the elementwise addition of each pair of vectors independently of the other pairs, with a vector-mapping operator like `torch.vmap`, but decided not to do so, because it runs into memory-bandwidth constraints on hardware accelerators like Nvidia GPUs, which are better suited for parallelizing computational kernels that execute and aggregate results over _tiled_ sub-tensors.
@@ -285,7 +291,10 @@ print(naive_lmme_via_lse_of_outer_sums(log_x, log_y), '\n')
 print(naive_lmme_via_vmapped_vector_ops(log_x, log_y), '\n')
 ```
 
-Note: For applications that truly require more precision, we provide `goom.alternate_log_matmul_exp`, an alternate implementation of LMME that applies vmapped vector operations, broadcasting over any preceding dimensions. This alternate implementation is more precise but also _much slower_ than `goom.log_matmul_exp`, especially for larger input tensors. In our experiments, we have found it unnecessary to use `goom.alternate_log_matmul_exp`. Please see its docstring for usage details.
+
+#### Alternate Implementation of Log-MatMul-Exp
+
+For applications that truly require more precision, we provide `goom.alternate_log_matmul_exp`, an alternate implementation of LMME that applies vmapped vector operations, broadcasting over any preceding dimensions. This alternate implementation is more precise but also _much slower_ than `goom.log_matmul_exp`, especially for larger input tensors. In our experiments, we have found it unnecessary to use `goom.alternate_log_matmul_exp`. Please see its docstring for usage details.
 
 
 ### Other Limitations
@@ -307,6 +316,7 @@ url={https://openreview.net/forum?id=SUuzb0SOGu},
 note={}
 }
 ```
+
 
 ## Notes
 
