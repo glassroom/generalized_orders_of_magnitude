@@ -7,6 +7,7 @@ Toy example:
 ```python
 import torch
 import generalized_orders_of_magnitude as goom
+import torch_parallel_scan as tps  # https://github.com/glassroom/torch_parallel_scan
 
 DEVICE = 'cuda'  # change as needed
 
@@ -14,20 +15,15 @@ goom.config.keep_logs_finite = True          # log(0) will return a finite floor
 goom.config.cast_all_logs_to_complex = True  # all GOOMs will be cast to a complex dtype
 goom.config.float_dtype = torch.float32      # dtype of real and imaginary components
 
-initial_state = torch.eye(1024, device=DEVICE)
-updates = torch.randn(256, 1024, 1024, device=DEVICE)
+mats = torch.randn(256, 1024, 1024, device=DEVICE)  # chain of square matrices
 
-# Sequentally update state over float tensors:
-state = initial_state.clone()
-for update in updates:
-    state = torch.matmul(state, update)
-print('Computes over float tensors?', state.isfinite().all().item())  # fails!
+# Multiply all matrices in the chain with a parallel scan over float tensors:
+prod = tps.reduce_scan(mats, torch.matmul, dim=-3)
+print('Computes over float tensors?', prod.isfinite().all().item())          # failure!
 
-# Sequentially update state over complex-typed GOOMs:
-log_state = goom.log(initial_state)
-for log_update in goom.log(updates):
-    log_state = goom.log_matmul_exp(log_state, log_update)
-print('Computes over complex GOOMs?', log_state.isfinite().all().item())  # succeeds!
+# Multiply the same matrices with a parallel scan over complex-typed GOOMs:
+log_prod = tps.reduce_scan(goom.log(mats), goom.log_matmul_exp, dim=-3)
+print('Computes over complex GOOMs?', log_prod.isfinite().all().item())      # success!
 ```
 
 GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they would exponentiate, enabling _effortless scaling and parallelization of high-dynamic-range computations_.
@@ -106,7 +102,7 @@ print('exp(log_z):\n{}\n'.format(goom.exp(log_z)))
 ```
 
 
-### Chains of Matrix Products over Complex-Typed GOOMs 
+### Chains of Matrix Products over Complex-Typed GOOMs via Parallel Scans
 
 You can apply `goom.log_matmul_exp()` via a parallel scan to compute chains of matrix products. Here is a toy example
 (note: to run the code below, you must first install [`torch_parallel_scan`](https://github.com/glassroom/torch_parallel_scan/)):
