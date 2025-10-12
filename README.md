@@ -26,7 +26,7 @@ log_prod = tps.reduce_scan(goom.log(mats), goom.log_matmul_exp, dim=-3)
 print('Computes over complex GOOMs?', log_prod.isfinite().all().item())      # success!
 ```
 
-We provide two implementations, Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of normal dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of normal dynamic range on each side, respectively.
+This implementation provides Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of normal dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of normal dynamic range on each side, respectively.
 
 Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices, over common representable magnitudes, precision is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation).
 
