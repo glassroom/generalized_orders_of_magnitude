@@ -1,8 +1,8 @@
 # generalized_orders_of_magnitude
 
-Reference implementation of [generalized orders of magnitude](https://arxiv.org/abs/2510.03426) (GOOMs), for PyTorch, enabling you to operate on real numbers _far_ beyond the limits of conventional floating-point formats. You no longer need to scale, clip, or stabilize values with cumbersome techniques to keep magnitudes within those limits.
+Reference implementation of [generalized orders of magnitude](https://arxiv.org/abs/2510.03426) (GOOMs), for PyTorch. GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they exponentiate.
 
-Toy example:
+This implementation enables you to operate on real numbers _far_ beyond the limits of conventional floating-point formats, for _effortless scaling and parallelization of high-dynamic-range computations_. You no longer need to scale, clip, or stabilize values to keep magnitudes within those limits. Toy example:
 
 ```python
 import torch
@@ -25,8 +25,6 @@ print('Computes over float tensors?', prod.isfinite().all().item())          # f
 log_prod = tps.reduce_scan(goom.log(mats), goom.log_matmul_exp, dim=-3)
 print('Computes over complex GOOMs?', log_prod.isfinite().all().item())      # success!
 ```
-
-GOOMs generalize the concept of "order of magnitude" to incorporate complex numbers that exponentiate to real ones. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers to which they would exponentiate, enabling _effortless scaling and parallelization of high-dynamic-range computations_.
 
 We provide two implementations, Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of normal dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of normal dynamic range on each side, respectively.
 
