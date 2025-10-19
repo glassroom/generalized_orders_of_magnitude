@@ -2,7 +2,7 @@
 
 Reference implementation of [generalized orders of magnitude](https://arxiv.org/abs/2510.03426) (GOOMs), for PyTorch. GOOMs generalize the concept of "order of magnitude" to incorporate the subset of complex numbers that exponentiate to a real one. As with ordinary orders of magnitude, GOOMs are more stable than the real numbers they represent.
 
-Formally, GOOMs are defined as a set of mathematical objects, incorporating floating-point formats and logarithmic number systems as special cases. This implementation of GOOMs, among other things, enables you to operate on real numbers _far_ beyond the limits of conventional floating-point formats, for _effortless scaling and parallelization of high-dynamic-range computations_. Toy example:
+Formally, GOOMs are defined as a set of mathematical objects, incorporating floating-point formats and logarithmic number systems as special cases. This reference implementation of GOOMs, among other things, enables you to operate on real numbers _far_ beyond the limits of conventional floating-point formats, for _effortless scaling and parallelization of high-dynamic-range computations_. Toy example:
 
 ```python
 import torch
@@ -19,16 +19,12 @@ mats = torch.randn(256, 1024, 1024, device=DEVICE)  # chain of square matrices
 
 # Multiply all matrices in the chain with a parallel scan over float tensors:
 prod = tps.reduce_scan(mats, torch.matmul, dim=-3)
-print('Computes over float tensors?', prod.isfinite().all().item())        # matmuls fail!
+print('Computes over float tensors?', prod.isfinite().all().item())      # matmuls fail!
 
 # Multiply the same matrices with a parallel scan over complex-typed GOOMs:
 log_prod = tps.reduce_scan(goom.log(mats), goom.log_matmul_exp, dim=-3)
-print('Computes over complex GOOMs?', log_prod.isfinite().all().item())    # matmuls succeed!
+print('Computes over complex GOOMs?', log_prod.isfinite().all().item())  # matmuls succeed!
 ```
-
-This implementation provides Complex64 and Complex128 GOOMs, with _more than 10^37 and 10^307 decimal digits of normal dynamic range on each side of the decimal point_, respectively. For comparison, Float32 and Float64 provide 38 and 308 decimal digits of normal dynamic range on each side, respectively.
-
-Comparing Complex64 GOOMs to Float32 and Complex128 GOOMs to Float64 on CUDA devices, over common representable magnitudes, precision is competitive (the same or within a fraction of the least significant decimal digit), while execution time and memory use typically double (with some variation).
 
 For a detailed comparison to Float32 and Float64 on CUDA devices, see [here](#comparison-to-float32-and-float64-on-cuda-devices).
 
