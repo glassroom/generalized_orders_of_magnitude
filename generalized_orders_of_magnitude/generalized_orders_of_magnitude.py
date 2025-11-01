@@ -170,7 +170,7 @@ def alternate_log_matmul_exp(log_x1, log_x2, chunk_size=32):
     _multi_mme = torch.vmap(_mme, chunk_size=chunk_size)                           # n mats, n mats -> n mats
 
     # Compute, reshape, and return result:
-    log_y = log(_multi_mme(log_s1, log_s2)) + c1 + c2                              # [<concat dims>, d1, d3]
+    log_y = log(_multi_mme(log_s1, log_s2)) + c1 + c2                              # [<flattened dims>, d1, d3]
     return log_y.view(*broadcast_szs, d1, d3)                                      # [..., d1, d3]
 
 
